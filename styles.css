@@ -295,4 +295,38 @@ main {
     .ad-banner {
         font-size: 0.9rem;
     }
+    /* 緊急ボタン */
+.emergency-btn {
+    background: #f44336 !important;
+    color: white;
+    font-weight: bold;
+    animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* フィルターボタン */
+.filter-btn {
+    background: white;
+    border: 2px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-btn.active {
+    background: #4CAF50;
+    color: white;
+    border-color: #4CAF50;
+}
+
+/* 評価表示 */
+.rating {
+    color: #ffc107;
+}
 }
