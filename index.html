@@ -11,20 +11,29 @@
         <h1>🚻 トイレファインダー</h1>
         <p>自転車での遠出も安心！みんなでトイレ情報を共有しよう</p>
     </header>
-
+    
     <main>
         <div class="ad-banner">
             <div class="ad-content">
                 <p>広告スペース - サイクリング用品、自転車アクセサリーなど</p>
             </div>
         </div>
-
+        
         <div class="controls">
             <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
             <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
-            <button id="clearDirectionsBtn" class="btn-clear" style="display: none;">🗺️ 道順を消去</button>
+            <button id="clearDirectionsBtn" class="btn-clear" style="display:none;">🗺️ 道順を消去</button>
+            
+            <!-- CSVインポートボタン追加 -->
+            <button id="importCSVBtn" class="btn-secondary" onclick="document.getElementById('csvFile').click()">
+                📂 CSVインポート
+            </button>
+            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+            
+            <!-- Google Places検索ボタン -->
+            <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
         </div>
-
+        
         <div class="main-content">
             <div id="map" class="map-container"></div>
             <div class="sidebar">
@@ -39,25 +48,56 @@
                         <small>広告スペース</small>
                     </div>
                 </div>
-
-                <div id="directionsPanel" class="directions-panel" style="display: none;">
+                
+                <!-- 統計情報表示 -->
+                <div class="stats-panel">
+                    <h4>📊 トイレ統計</h4>
+                    <div id="toiletStats">
+                        <p>総トイレ数: <span id="totalCount">0</span></p>
+                        <p>無料トイレ: <span id="freeCount">0</span></p>
+                        <p>バリアフリー: <span id="wheelchairCount">0</span></p>
+                    </div>
+                </div>
+                
+                <div id="directionsPanel" class="directions-panel" style="display:none;">
                     <h4>📍 道順</h4>
                     <div id="directionsText"></div>
                 </div>
             </div>
         </div>
-
+        
+        <!-- CSVインポートモーダル -->
+        <div id="csvImportModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeCSVModal()">&times;</span>
+                <h2>CSVデータインポート</h2>
+                <div id="csvPreview">
+                    <p>CSVファイルを選択してください</p>
+                    <div class="csv-instructions">
+                        <h4>対応形式：</h4>
+                        <ul>
+                            <li>自治体のオープンデータ（公衆トイレ一覧）</li>
+                            <li>最低限必要な列: 名称, 緯度, 経度</li>
+                            <li>オプション: 住所, 多目的トイレ, 営業時間など</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button id="importBtn" class="btn-primary" style="display:none;">インポート</button>
+                    <button class="btn-secondary" onclick="closeCSVModal()">キャンセル</button>
+                </div>
+            </div>
+        </div>
+        
         <div id="addToiletModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <h2>トイレ情報を追加</h2>
-
                 <form id="toiletForm">
                     <div class="form-group">
                         <label for="toiletName">名前:</label>
                         <input type="text" id="toiletName" required placeholder="例: コンビニのトイレ">
                     </div>
-
                     <div class="form-group">
                         <label for="toiletType">種類:</label>
                         <select id="toiletType" required>
@@ -69,63 +109,20 @@
                             <option value="other">その他</option>
                         </select>
                     </div>
-
-                    <!-- 営業時間の入力 -->
-                    <div class="form-group">
-                        <label>営業時間:</label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="time" id="openTime">
-                            <span>〜</span>
-                            <input type="time" id="closeTime">
-                            <label>
-                                <input type="checkbox" id="is24hours"> 24時間
-                            </label>
-                        </div>
-                    </div>
-
-                    <!-- 設備チェック -->
-                    <div class="form-group">
-                        <label>設備:</label>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                            <label><input type="checkbox" id="hasWashlet"> ウォシュレット</label>
-                            <label><input type="checkbox" id="hasBabyChair"> ベビーチェア</label>
-                            <label><input type="checkbox" id="singleRoom"> 個室タイプ</label>
-                        </div>
-                    </div>
-
-                    <!-- 清潔度 -->
-                    <div class="form-group">
-                        <label for="cleanliness">清潔度:</label>
-                        <select id="cleanliness">
-                            <option value="5">⭐⭐⭐⭐⭐ とても清潔</option>
-                            <option value="4">⭐⭐⭐⭐ 清潔</option>
-                            <option value="3" selected>⭐⭐⭐ 普通</option>
-                            <option value="2">⭐⭐ やや汚い</option>
-                            <option value="1">⭐ 汚い</option>
-                        </select>
-                    </div>
-
-                    <!-- 備考 -->
                     <div class="form-group">
                         <label for="toiletNotes">備考:</label>
                         <textarea id="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
                     </div>
-
-                    <!-- 無料チェック -->
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="toiletFree"> 無料
                         </label>
                     </div>
-
-                    <!-- 車椅子対応 -->
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="toiletWheelchair"> ♿ 車椅子対応
                         </label>
                     </div>
-
-                    <!-- ボタン -->
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">追加</button>
                         <button type="button" class="btn-secondary" id="cancelBtn">キャンセル</button>
@@ -134,8 +131,178 @@
             </div>
         </div>
     </main>
-
+    
+    <script>
+        // CSVインポート機能
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                parseCSV(csv);
+            };
+            reader.readAsText(file);
+        });
+        
+        function parseCSV(csv) {
+            const lines = csv.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            
+            // ヘッダーの確認
+            const requiredHeaders = ['名称', '緯度', '経度'];
+            const headerMapping = {
+                '名称': ['名称', 'name', '施設名', 'トイレ名'],
+                '緯度': ['緯度', 'lat', 'latitude', '北緯'],
+                '経度': ['経度', 'lng', 'lon', 'longitude', '東経'],
+                '住所': ['住所', 'address', '所在地'],
+                '多目的': ['多目的', '車椅子', 'wheelchair', 'バリアフリー'],
+                '営業時間': ['営業時間', '利用時間', 'hours']
+            };
+            
+            // CSVプレビューモーダルを表示
+            document.getElementById('csvImportModal').style.display = 'block';
+            
+            const preview = document.getElementById('csvPreview');
+            preview.innerHTML = `
+                <h4>インポートプレビュー</h4>
+                <p>検出された列: ${headers.join(', ')}</p>
+                <p>データ行数: ${lines.length - 1}</p>
+            `;
+            
+            document.getElementById('importBtn').style.display = 'block';
+            document.getElementById('importBtn').onclick = function() {
+                importToilets(lines, headers, headerMapping);
+            };
+        }
+        
+        function importToilets(lines, headers, mapping) {
+            let imported = 0;
+            
+            for (let i = 1; i < lines.length; i++) {
+                const values = lines[i].split(',');
+                if (values.length < 3) continue;
+                
+                // ヘッダーマッピング
+                const nameIndex = findHeaderIndex(headers, mapping['名称']);
+                const latIndex = findHeaderIndex(headers, mapping['緯度']);
+                const lngIndex = findHeaderIndex(headers, mapping['経度']);
+                
+                if (nameIndex === -1 || latIndex === -1 || lngIndex === -1) continue;
+                
+                const toilet = {
+                    id: 'import-' + Date.now() + '-' + i,
+                    name: values[nameIndex].trim().replace(/"/g, ''),
+                    lat: parseFloat(values[latIndex]),
+                    lng: parseFloat(values[lngIndex]),
+                    type: 'other',
+                    free: true,
+                    wheelchair: false,
+                    isPreset: true,
+                    addedAt: new Date().toISOString()
+                };
+                
+                // オプション項目
+                const addressIndex = findHeaderIndex(headers, mapping['住所']);
+                if (addressIndex !== -1) {
+                    toilet.notes = values[addressIndex].trim().replace(/"/g, '');
+                }
+                
+                const wheelchairIndex = findHeaderIndex(headers, mapping['多目的']);
+                if (wheelchairIndex !== -1) {
+                    toilet.wheelchair = values[wheelchairIndex] === '有' || 
+                                       values[wheelchairIndex] === '○' || 
+                                       values[wheelchairIndex] === 'true';
+                }
+                
+                if (!isNaN(toilet.lat) && !isNaN(toilet.lng)) {
+                    toiletFinder.addToilet(toilet);
+                    imported++;
+                }
+            }
+            
+            alert(`${imported}件のトイレ情報をインポートしました！`);
+            closeCSVModal();
+            updateStats();
+        }
+        
+        function findHeaderIndex(headers, possibleNames) {
+            for (let name of possibleNames) {
+                const index = headers.indexOf(name.toLowerCase());
+                if (index !== -1) return index;
+            }
+            return -1;
+        }
+        
+        function closeCSVModal() {
+            document.getElementById('csvImportModal').style.display = 'none';
+            document.getElementById('csvFile').value = '';
+        }
+        
+        // 統計情報の更新
+        function updateStats() {
+            if (window.toiletFinder) {
+                const total = toiletFinder.toilets.length;
+                const free = toiletFinder.toilets.filter(t => t.free).length;
+                const wheelchair = toiletFinder.toilets.filter(t => t.wheelchair).length;
+                
+                document.getElementById('totalCount').textContent = total;
+                document.getElementById('freeCount').textContent = free;
+                document.getElementById('wheelchairCount').textContent = wheelchair;
+            }
+        }
+        
+        // 周辺のコンビニ検索（Google Places API使用）
+        document.getElementById('searchNearbyBtn').addEventListener('click', function() {
+            if (!toiletFinder.currentLocation) {
+                alert('現在地を取得してください');
+                return;
+            }
+            
+            const service = new google.maps.places.PlacesService(toiletFinder.map);
+            const request = {
+                location: toiletFinder.currentLocation,
+                radius: 1000,
+                type: ['convenience_store']
+            };
+            
+            service.nearbySearch(request, (results, status) => {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    let added = 0;
+                    results.forEach(place => {
+                        const toilet = {
+                            id: 'places-' + place.place_id,
+                            name: place.name,
+                            lat: place.geometry.location.lat(),
+                            lng: place.geometry.location.lng(),
+                            type: 'convenience',
+                            free: true,
+                            wheelchair: false,
+                            isPreset: true,
+                            notes: '営業時間は店舗により異なります'
+                        };
+                        
+                        // 重複チェック
+                        const exists = toiletFinder.toilets.some(t => 
+                            Math.abs(t.lat - toilet.lat) < 0.0001 && 
+                            Math.abs(t.lng - toilet.lng) < 0.0001
+                        );
+                        
+                        if (!exists) {
+                            toiletFinder.addToilet(toilet);
+                            added++;
+                        }
+                    });
+                    
+                    alert(`${added}件のコンビニを追加しました！`);
+                    updateStats();
+                }
+            });
+        });
+    </script>
+    
     <script src="app.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&callback=initMap"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&libraries=places&callback=initMap"></script>
 </body>
 </html>
