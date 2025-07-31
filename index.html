@@ -66,6 +66,38 @@
                             <option value="other">その他</option>
                         </select>
                     </div>
+                    <!-- index.htmlのフォームに追加 -->
+<div class="form-group">
+    <label>営業時間:</label>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <input type="time" id="openTime">
+        <span>〜</span>
+        <input type="time" id="closeTime">
+        <label>
+            <input type="checkbox" id="is24hours"> 24時間
+        </label>
+    </div>
+</div>
+
+<div class="form-group">
+    <label>設備:</label>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <label><input type="checkbox" id="hasWashlet"> ウォシュレット</label>
+        <label><input type="checkbox" id="hasBabyChair"> ベビーチェア</label>
+        <label><input type="checkbox" id="singleRoom"> 個室タイプ</label>
+    </div>
+</div>
+
+<div class="form-group">
+    <label for="cleanliness">清潔度:</label>
+    <select id="cleanliness">
+        <option value="5">⭐⭐⭐⭐⭐ とても清潔</option>
+        <option value="4">⭐⭐⭐⭐ 清潔</option>
+        <option value="3" selected>⭐⭐⭐ 普通</option>
+        <option value="2">⭐⭐ やや汚い</option>
+        <option value="1">⭐ 汚い</option>
+    </select>
+</div>
                     <div class="form-group">
                         <label for="toiletNotes">備考:</label>
                         <textarea id="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
