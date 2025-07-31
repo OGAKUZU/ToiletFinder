@@ -312,6 +312,46 @@ main {
     color: #ddd;
 }
 
+/* 統計パネル */
+.stats-panel {
+    background: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    margin-bottom: 1rem;
+}
+
+.stats-panel h4 {
+    margin-bottom: 1rem;
+    color: #333;
+    border-bottom: 2px solid #4CAF50;
+    padding-bottom: 0.5rem;
+}
+
+.stats-panel p {
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+}
+
+.stats-panel span {
+    font-weight: bold;
+    color: #4CAF50;
+}
+
+/* CSVインポート用 */
+.csv-instructions {
+    background: #f5f5f5;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+}
+
+.csv-instructions ul {
+    margin: 0.5rem 0;
+    padding-left: 1.5rem;
+}
+
 @media (max-width: 768px) {
     header h1 {
         font-size: 1.5rem;
@@ -366,43 +406,4 @@ main {
         padding: 6px 12px;
         font-size: 0.8rem;
     }
-    /* 統計パネル */
-.stats-panel {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
-}
-
-.stats-panel h4 {
-    margin-bottom: 1rem;
-    color: #333;
-    border-bottom: 2px solid #4CAF50;
-    padding-bottom: 0.5rem;
-}
-
-.stats-panel p {
-    margin: 0.5rem 0;
-    display: flex;
-    justify-content: space-between;
-}
-
-.stats-panel span {
-    font-weight: bold;
-    color: #4CAF50;
-}
-
-/* CSVインポート用 */
-.csv-instructions {
-    background: #f5f5f5;
-    padding: 1rem;
-    border-radius: 5px;
-    margin-top: 1rem;
-}
-
-.csv-instructions ul {
-    margin: 0.5rem 0;
-    padding-left: 1.5rem;
-}
 }
