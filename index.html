@@ -11,20 +11,20 @@
         <h1>🚻 トイレファインダー</h1>
         <p>自転車での遠出も安心！みんなでトイレ情報を共有しよう</p>
     </header>
-    
+
     <main>
         <div class="ad-banner">
             <div class="ad-content">
                 <p>広告スペース - サイクリング用品、自転車アクセサリーなど</p>
             </div>
         </div>
-        
+
         <div class="controls">
             <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
             <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
-            <button id="clearDirectionsBtn" class="btn-clear" style="display:none;">🗺️ 道順を消去</button>
+            <button id="clearDirectionsBtn" class="btn-clear" style="display: none;">🗺️ 道順を消去</button>
         </div>
-        
+
         <div class="main-content">
             <div id="map" class="map-container"></div>
             <div class="sidebar">
@@ -39,22 +39,25 @@
                         <small>広告スペース</small>
                     </div>
                 </div>
-                <div id="directionsPanel" class="directions-panel" style="display:none;">
+
+                <div id="directionsPanel" class="directions-panel" style="display: none;">
                     <h4>📍 道順</h4>
                     <div id="directionsText"></div>
                 </div>
             </div>
         </div>
-        
+
         <div id="addToiletModal" class="modal">
             <div class="modal-content">
                 <span class="close">&times;</span>
                 <h2>トイレ情報を追加</h2>
+
                 <form id="toiletForm">
                     <div class="form-group">
                         <label for="toiletName">名前:</label>
                         <input type="text" id="toiletName" required placeholder="例: コンビニのトイレ">
                     </div>
+
                     <div class="form-group">
                         <label for="toiletType">種類:</label>
                         <select id="toiletType" required>
@@ -66,52 +69,63 @@
                             <option value="other">その他</option>
                         </select>
                     </div>
-                    <!-- index.htmlのフォームに追加 -->
-<div class="form-group">
-    <label>営業時間:</label>
-    <div style="display: flex; gap: 10px; align-items: center;">
-        <input type="time" id="openTime">
-        <span>〜</span>
-        <input type="time" id="closeTime">
-        <label>
-            <input type="checkbox" id="is24hours"> 24時間
-        </label>
-    </div>
-</div>
 
-<div class="form-group">
-    <label>設備:</label>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <label><input type="checkbox" id="hasWashlet"> ウォシュレット</label>
-        <label><input type="checkbox" id="hasBabyChair"> ベビーチェア</label>
-        <label><input type="checkbox" id="singleRoom"> 個室タイプ</label>
-    </div>
-</div>
+                    <!-- 営業時間の入力 -->
+                    <div class="form-group">
+                        <label>営業時間:</label>
+                        <div style="display: flex; gap: 10px; align-items: center;">
+                            <input type="time" id="openTime">
+                            <span>〜</span>
+                            <input type="time" id="closeTime">
+                            <label>
+                                <input type="checkbox" id="is24hours"> 24時間
+                            </label>
+                        </div>
+                    </div>
 
-<div class="form-group">
-    <label for="cleanliness">清潔度:</label>
-    <select id="cleanliness">
-        <option value="5">⭐⭐⭐⭐⭐ とても清潔</option>
-        <option value="4">⭐⭐⭐⭐ 清潔</option>
-        <option value="3" selected>⭐⭐⭐ 普通</option>
-        <option value="2">⭐⭐ やや汚い</option>
-        <option value="1">⭐ 汚い</option>
-    </select>
-</div>
+                    <!-- 設備チェック -->
+                    <div class="form-group">
+                        <label>設備:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                            <label><input type="checkbox" id="hasWashlet"> ウォシュレット</label>
+                            <label><input type="checkbox" id="hasBabyChair"> ベビーチェア</label>
+                            <label><input type="checkbox" id="singleRoom"> 個室タイプ</label>
+                        </div>
+                    </div>
+
+                    <!-- 清潔度 -->
+                    <div class="form-group">
+                        <label for="cleanliness">清潔度:</label>
+                        <select id="cleanliness">
+                            <option value="5">⭐⭐⭐⭐⭐ とても清潔</option>
+                            <option value="4">⭐⭐⭐⭐ 清潔</option>
+                            <option value="3" selected>⭐⭐⭐ 普通</option>
+                            <option value="2">⭐⭐ やや汚い</option>
+                            <option value="1">⭐ 汚い</option>
+                        </select>
+                    </div>
+
+                    <!-- 備考 -->
                     <div class="form-group">
                         <label for="toiletNotes">備考:</label>
                         <textarea id="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
                     </div>
+
+                    <!-- 無料チェック -->
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="toiletFree"> 無料
                         </label>
                     </div>
+
+                    <!-- 車椅子対応 -->
                     <div class="form-group">
                         <label>
                             <input type="checkbox" id="toiletWheelchair"> ♿ 車椅子対応
                         </label>
                     </div>
+
+                    <!-- ボタン -->
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">追加</button>
                         <button type="button" class="btn-secondary" id="cancelBtn">キャンセル</button>
@@ -120,7 +134,7 @@
             </div>
         </div>
     </main>
-    
+
     <script src="app.js"></script>
     <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&callback=initMap"></script>
 </body>
