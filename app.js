@@ -7,6 +7,12 @@ class ToiletFinder {
         this.pendingToiletMarker = null;
         this.directionsService = null;
         this.directionsRenderer = null;
+        this.markers = [];
+        this.filters = {
+            showOpen: false,
+            showFree: false,
+            showWheelchair: false
+        };
         
         this.init();
         this.loadToilets();
@@ -69,6 +75,11 @@ class ToiletFinder {
         
         this.getCurrentLocation();
         this.displayToilets();
+        
+        // 初期データがある場合は統計を更新
+        if (window.updateStats) {
+            window.updateStats();
+        }
     }
     
     getCurrentLocation() {
@@ -93,6 +104,7 @@ class ToiletFinder {
                 },
                 (error) => {
                     console.error('位置情報の取得に失敗しました:', error);
+                    alert('位置情報の取得に失敗しました。ブラウザの設定を確認してください。');
                 }
             );
         }
@@ -183,6 +195,11 @@ class ToiletFinder {
         this.toilets.push(toilet);
         this.saveToilets();
         this.createToiletMarker(toilet);
+        
+        // 統計を更新
+        if (window.updateStats) {
+            window.updateStats();
+        }
     }
     
     createToiletMarker(toilet) {
@@ -196,10 +213,16 @@ class ToiletFinder {
         };
         
         const icon = typeIcons[toilet.type] || '🚻';
-        let color = toilet.free ? '#4CAF50' : '#FF9800';
         
-        if (toilet.wheelchair) {
-            color = '#9C27B0';
+        // 色分け
+        let color;
+        if (toilet.isPreset) {
+            color = toilet.wheelchair ? '#1976D2' : '#2196F3';
+        } else {
+            color = toilet.free ? '#4CAF50' : '#FF9800';
+            if (toilet.wheelchair) {
+                color = '#9C27B0';
+            }
         }
         
         const marker = new google.maps.Marker({
@@ -224,6 +247,7 @@ class ToiletFinder {
             this.showDirections(toilet);
         });
         
+        this.markers.push({ marker, toilet });
         return marker;
     }
     
@@ -250,7 +274,7 @@ class ToiletFinder {
                         🗺️ 道順
                     </button>
                     <p style="margin: 5px 0; font-size: 0.8em; color: #666;">
-                        追加日: ${new Date(toilet.addedAt).toLocaleDateString('ja-JP')}
+                        ${toilet.isPreset ? 'プリセットデータ' : `追加日: ${new Date(toilet.addedAt).toLocaleDateString('ja-JP')}`}
                     </p>
                 </div>
             </div>
@@ -264,13 +288,31 @@ class ToiletFinder {
     }
     
     saveToilets() {
-        localStorage.setItem('toiletFinderToilets', JSON.stringify(this.toilets));
+        // プリセットデータは保存しない
+        const userToilets = this.toilets.filter(t => !t.isPreset);
+        localStorage.setItem('toiletFinderToilets', JSON.stringify(userToilets));
     }
     
     loadToilets() {
+        // ローカルストレージから読み込み
         const saved = localStorage.getItem('toiletFinderToilets');
         if (saved) {
             this.toilets = JSON.parse(saved);
+        }
+        
+        // 初期データを追加（重複チェック）
+        if (window.INITIAL_TOILET_DATA) {
+            window.INITIAL_TOILET_DATA.forEach(initialToilet => {
+                const exists = this.toilets.some(t => 
+                    t.id === initialToilet.id || 
+                    (Math.abs(t.lat - initialToilet.lat) < 0.0001 && 
+                     Math.abs(t.lng - initialToilet.lng) < 0.0001)
+                );
+                
+                if (!exists) {
+                    this.toilets.push(initialToilet);
+                }
+            });
         }
     }
     
@@ -311,8 +353,109 @@ class ToiletFinder {
         document.getElementById('directionsPanel').style.display = 'none';
         document.getElementById('clearDirectionsBtn').style.display = 'none';
     }
+    
+    // フィルター機能
+    toggleFilter(filterName) {
+        this.filters[filterName] = !this.filters[filterName];
+        
+        // ボタンのスタイルを更新
+        const buttons = document.querySelectorAll('.filter-btn');
+        buttons.forEach(btn => {
+            if (btn.textContent.includes('営業中') && filterName === 'showOpen') {
+                btn.classList.toggle('active');
+            } else if (btn.textContent.includes('無料') && filterName === 'showFree') {
+                btn.classList.toggle('active');
+            } else if (btn.textContent.includes('バリアフリー') && filterName === 'showWheelchair') {
+                btn.classList.toggle('active');
+            }
+        });
+        
+        this.applyFilters();
+    }
+    
+    applyFilters() {
+        this.markers.forEach(({ marker, toilet }) => {
+            let visible = true;
+            
+            if (this.filters.showFree && !toilet.free) {
+                visible = false;
+            }
+            
+            if (this.filters.showWheelchair && !toilet.wheelchair) {
+                visible = false;
+            }
+            
+            marker.setVisible(visible);
+        });
+    }
+    
+    // 緊急モード
+    emergencyMode() {
+        if (!this.currentLocation) {
+            alert('現在地が取得できません！位置情報を有効にしてください。');
+            return;
+        }
+        
+        let nearestToilet = null;
+        let minDistance = Infinity;
+        
+        this.toilets.forEach(toilet => {
+            const distance = this.calculateDistance(
+                this.currentLocation.lat, 
+                this.currentLocation.lng,
+                toilet.lat,
+                toilet.lng
+            );
+            
+            if (distance < minDistance) {
+                minDistance = distance;
+                nearestToilet = toilet;
+            }
+        });
+        
+        if (nearestToilet) {
+            this.showDirections(nearestToilet);
+            this.map.setZoom(17);
+            this.map.setCenter({ lat: nearestToilet.lat, lng: nearestToilet.lng });
+            
+            // 緊急アラート表示
+            const alert = document.createElement('div');
+            alert.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: #f44336;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 5px;
+                font-weight: bold;
+                z-index: 9999;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            `;
+            alert.innerHTML = `
+                🚨 最寄りトイレ: ${nearestToilet.name}<br>
+                距離: ${(minDistance * 1000).toFixed(0)}m
+            `;
+            document.body.appendChild(alert);
+            
+            setTimeout(() => alert.remove(), 5000);
+        }
+    }
+    
+    calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                  Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                  Math.sin(dLon/2) * Math.sin(dLon/2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        return R * c;
+    }
 }
 
+// グローバル関数として定義
 let toiletFinder;
 
 function initMap() {
@@ -320,4 +463,5 @@ function initMap() {
     toiletFinder.initMap();
 }
 
+// window オブジェクトに設定（Google Maps APIから呼び出されるため）
 window.initMap = initMap;
