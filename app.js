@@ -15,7 +15,6 @@ class ToiletFinder {
         };
         
         this.init();
-        this.loadToilets();
     }
     
     init() {
@@ -27,17 +26,33 @@ class ToiletFinder {
         const myLocationBtn = document.getElementById('myLocationBtn');
         const clearDirectionsBtn = document.getElementById('clearDirectionsBtn');
         const modal = document.getElementById('addToiletModal');
-        const closeBtn = document.querySelector('.close');
+        const closeBtns = modal.querySelectorAll('.close');
         const cancelBtn = document.getElementById('cancelBtn');
         const toiletForm = document.getElementById('toiletForm');
         
-        addToiletBtn.addEventListener('click', () => this.toggleAddMode());
-        myLocationBtn.addEventListener('click', () => this.goToCurrentLocation());
-        clearDirectionsBtn.addEventListener('click', () => this.clearDirections());
-        closeBtn.addEventListener('click', () => this.closeModal());
-        cancelBtn.addEventListener('click', () => this.closeModal());
-        toiletForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        if (addToiletBtn) {
+            addToiletBtn.addEventListener('click', () => this.toggleAddMode());
+        }
+        if (myLocationBtn) {
+            myLocationBtn.addEventListener('click', () => this.goToCurrentLocation());
+        }
+        if (clearDirectionsBtn) {
+            clearDirectionsBtn.addEventListener('click', () => this.clearDirections());
+        }
         
+        // モーダルの閉じるボタン
+        closeBtns.forEach(btn => {
+            btn.addEventListener('click', () => this.closeModal());
+        });
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', () => this.closeModal());
+        }
+        if (toiletForm) {
+            toiletForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
+        }
+        
+        // モーダル外をクリックで閉じる
         window.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.closeModal();
@@ -46,6 +61,7 @@ class ToiletFinder {
     }
     
     initMap() {
+        console.log('地図初期化開始');
         const defaultCenter = { lat: 35.6762, lng: 139.6503 };
         
         this.map = new google.maps.Map(document.getElementById('map'), {
@@ -67,19 +83,28 @@ class ToiletFinder {
         });
         this.directionsRenderer.setMap(this.map);
         
+        // 地図クリックイベント
         this.map.addListener('click', (e) => {
             if (this.addingToilet) {
                 this.showAddToiletForm(e.latLng);
             }
         });
         
+        // 初期データを読み込み
+        this.loadToilets();
+        
+        // 現在地を取得
         this.getCurrentLocation();
+        
+        // トイレを表示
         this.displayToilets();
         
-        // 初期データがある場合は統計を更新
+        // 統計を更新
         if (window.updateStats) {
             window.updateStats();
         }
+        
+        console.log('地図初期化完了');
     }
     
     getCurrentLocation() {
@@ -101,6 +126,7 @@ class ToiletFinder {
                             scaledSize: new google.maps.Size(20, 20)
                         }
                     });
+                    console.log('現在地取得成功:', this.currentLocation);
                 },
                 (error) => {
                     console.error('位置情報の取得に失敗しました:', error);
@@ -127,6 +153,7 @@ class ToiletFinder {
             btn.textContent = '❌ キャンセル';
             btn.classList.add('btn-cancel');
             this.map.setOptions({ cursor: 'crosshair' });
+            alert('地図上をクリックしてトイレの位置を指定してください');
         } else {
             btn.textContent = '📍 トイレを追加';
             btn.classList.remove('btn-cancel');
@@ -139,6 +166,8 @@ class ToiletFinder {
     }
     
     showAddToiletForm(latLng) {
+        console.log('トイレ追加フォーム表示', latLng.lat(), latLng.lng());
+        
         if (this.pendingToiletMarker) {
             this.pendingToiletMarker.setMap(null);
         }
@@ -173,11 +202,11 @@ class ToiletFinder {
     
     handleFormSubmit(e) {
         e.preventDefault();
+        console.log('フォーム送信');
         
-        const formData = new FormData(e.target);
         const toilet = {
             id: Date.now().toString(),
-            name: formData.get('toiletName') || document.getElementById('toiletName').value,
+            name: document.getElementById('toiletName').value,
             type: document.getElementById('toiletType').value,
             notes: document.getElementById('toiletNotes').value,
             free: document.getElementById('toiletFree').checked,
@@ -187,6 +216,7 @@ class ToiletFinder {
             addedAt: new Date().toISOString()
         };
         
+        console.log('追加するトイレ:', toilet);
         this.addToilet(toilet);
         this.closeModal();
     }
@@ -194,12 +224,15 @@ class ToiletFinder {
     addToilet(toilet) {
         this.toilets.push(toilet);
         this.saveToilets();
-        this.createToiletMarker(toilet);
+        const marker = this.createToiletMarker(toilet);
         
         // 統計を更新
         if (window.updateStats) {
             window.updateStats();
         }
+        
+        console.log('トイレ追加完了:', toilet);
+        console.log('現在のトイレ数:', this.toilets.length);
     }
     
     createToiletMarker(toilet) {
@@ -261,6 +294,9 @@ class ToiletFinder {
             other: 'その他'
         };
         
+        // JSON文字列のエスケープ処理
+        const toiletJson = JSON.stringify(toilet).replace(/"/g, '&quot;');
+        
         return `
             <div style="max-width: 250px;">
                 <h3 style="margin: 0 0 10px 0; color: #333;">${toilet.name}</h3>
@@ -269,7 +305,7 @@ class ToiletFinder {
                 <p style="margin: 5px 0;"><strong>車椅子対応:</strong> ${toilet.wheelchair ? '♿ 対応' : '❌ 非対応'}</p>
                 ${toilet.notes ? `<p style="margin: 5px 0;"><strong>備考:</strong> ${toilet.notes}</p>` : ''}
                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
-                    <button onclick="toiletFinder.showDirections(${JSON.stringify(toilet).replace(/"/g, '&quot;')})" 
+                    <button onclick="toiletFinder.showDirectionsFromInfo('${toilet.id}')" 
                             style="background: #2196F3; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; margin-right: 5px;">
                         🗺️ 道順
                     </button>
@@ -281,7 +317,16 @@ class ToiletFinder {
         `;
     }
     
+    // IDからトイレを検索して道順を表示
+    showDirectionsFromInfo(toiletId) {
+        const toilet = this.toilets.find(t => t.id === toiletId);
+        if (toilet) {
+            this.showDirections(toilet);
+        }
+    }
+    
     displayToilets() {
+        console.log('トイレ表示開始:', this.toilets.length + '件');
         this.toilets.forEach(toilet => {
             this.createToiletMarker(toilet);
         });
@@ -291,13 +336,21 @@ class ToiletFinder {
         // プリセットデータは保存しない
         const userToilets = this.toilets.filter(t => !t.isPreset);
         localStorage.setItem('toiletFinderToilets', JSON.stringify(userToilets));
+        console.log('保存したトイレ数:', userToilets.length);
     }
     
     loadToilets() {
         // ローカルストレージから読み込み
         const saved = localStorage.getItem('toiletFinderToilets');
         if (saved) {
-            this.toilets = JSON.parse(saved);
+            try {
+                const savedToilets = JSON.parse(saved);
+                this.toilets = savedToilets;
+                console.log('ローカルストレージから読み込み:', savedToilets.length + '件');
+            } catch (e) {
+                console.error('保存データの読み込みエラー:', e);
+                this.toilets = [];
+            }
         }
         
         // 初期データを追加（重複チェック）
@@ -313,6 +366,7 @@ class ToiletFinder {
                     this.toilets.push(initialToilet);
                 }
             });
+            console.log('初期データ追加後:', this.toilets.length + '件');
         }
     }
     
@@ -459,8 +513,12 @@ class ToiletFinder {
 let toiletFinder;
 
 function initMap() {
+    console.log('initMap関数が呼ばれました');
     toiletFinder = new ToiletFinder();
     toiletFinder.initMap();
+    
+    // グローバルに公開（デバッグ用）
+    window.toiletFinder = toiletFinder;
 }
 
 // window オブジェクトに設定（Google Maps APIから呼び出されるため）
