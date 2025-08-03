@@ -96,11 +96,11 @@
                 <form id="toiletForm">
                     <div class="form-group">
                         <label for="toiletName">名前:</label>
-                        <input type="text" id="toiletName" required placeholder="例: コンビニのトイレ">
+                        <input type="text" id="toiletName" name="toiletName" required placeholder="例: コンビニのトイレ">
                     </div>
                     <div class="form-group">
                         <label for="toiletType">種類:</label>
-                        <select id="toiletType" required>
+                        <select id="toiletType" name="toiletType" required>
                             <option value="convenience">コンビニ</option>
                             <option value="park">公園</option>
                             <option value="station">駅</option>
@@ -111,16 +111,16 @@
                     </div>
                     <div class="form-group">
                         <label for="toiletNotes">備考:</label>
-                        <textarea id="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
+                        <textarea id="toiletNotes" name="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
                     </div>
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="toiletFree"> 無料
+                            <input type="checkbox" id="toiletFree" name="toiletFree"> 無料
                         </label>
                     </div>
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="toiletWheelchair"> ♿ 車椅子対応
+                            <input type="checkbox" id="toiletWheelchair" name="toiletWheelchair"> ♿ 車椅子対応
                         </label>
                     </div>
                     <div class="form-actions">
@@ -133,6 +133,68 @@
     </main>
     
     <script>
+        // 初期トイレデータをグローバルに定義
+        window.INITIAL_TOILET_DATA = [
+            {
+                id: "tokyo-station-1",
+                name: "東京駅 丸の内南口 公衆トイレ",
+                type: "station",
+                lat: 35.6797,
+                lng: 139.7677,
+                free: true,
+                wheelchair: true,
+                notes: "改札外、きれいで広い",
+                isPreset: true
+            },
+            {
+                id: "shibuya-hachiko",
+                name: "渋谷駅 ハチ公口 公衆トイレ",
+                type: "station",
+                lat: 35.6590,
+                lng: 139.7005,
+                free: true,
+                wheelchair: true,
+                notes: "ハチ公像近く",
+                isPreset: true
+            },
+            {
+                id: "shinjuku-south",
+                name: "新宿駅 南口 公衆トイレ",
+                type: "station",
+                lat: 35.6896,
+                lng: 139.7006,
+                free: true,
+                wheelchair: true,
+                notes: "駅構内",
+                isPreset: true
+            },
+            {
+                id: "asakusa-kaminari",
+                name: "雷門前 公衆トイレ",
+                type: "park",
+                lat: 35.7105,
+                lng: 139.7927,
+                free: true,
+                wheelchair: true,
+                notes: "観光客多い、混雑注意",
+                isPreset: true
+            },
+            {
+                id: "ueno-park",
+                name: "上野公園 噴水前トイレ",
+                type: "park",
+                lat: 35.7150,
+                lng: 139.7730,
+                free: true,
+                wheelchair: true,
+                notes: "きれいに改装済み",
+                isPreset: true
+            }
+        ];
+        
+        // デバッグ用
+        console.log('ページ読み込み完了');
+        
         // CSVインポート機能
         document.getElementById('csvFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -240,8 +302,8 @@
             document.getElementById('csvFile').value = '';
         }
         
-        // 統計情報の更新
-        function updateStats() {
+        // 統計情報の更新（グローバル関数として定義）
+        window.updateStats = function() {
             if (window.toiletFinder) {
                 const total = toiletFinder.toilets.length;
                 const free = toiletFinder.toilets.filter(t => t.free).length;
@@ -253,9 +315,16 @@
             }
         }
         
+        // 初期化完了時に統計を更新
+        setTimeout(() => {
+            if (window.updateStats) {
+                window.updateStats();
+            }
+        }, 1000);
+        
         // 周辺のコンビニ検索（Google Places API使用）
         document.getElementById('searchNearbyBtn').addEventListener('click', function() {
-            if (!toiletFinder.currentLocation) {
+            if (!window.toiletFinder || !toiletFinder.currentLocation) {
                 alert('現在地を取得してください');
                 return;
             }
@@ -297,12 +366,23 @@
                     
                     alert(`${added}件のコンビニを追加しました！`);
                     updateStats();
+                } else {
+                    console.error('Places search failed:', status);
                 }
             });
         });
+        
+        // Maps API読み込みエラーハンドリング
+        window.gm_authFailure = function() {
+            console.error('Google Maps APIの認証に失敗しました。APIキーを確認してください。');
+            alert('地図の読み込みに失敗しました。APIキーの設定を確認してください。');
+        };
     </script>
     
     <script src="app.js"></script>
-    <script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap"></script>
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap"
+        onerror="console.error('Google Maps APIの読み込みに失敗しました:', this.src)">
+    </script>
 </body>
 </html>
