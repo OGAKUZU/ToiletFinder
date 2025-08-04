@@ -324,52 +324,16 @@
         
         // 周辺のコンビニ検索（Google Places API使用）
         document.getElementById('searchNearbyBtn').addEventListener('click', function() {
-            if (!window.toiletFinder || !toiletFinder.currentLocation) {
-                alert('現在地を取得してください');
+            console.log('コンビニ検索ボタンクリック');
+            
+            // toiletFinderが初期化されるまで待つ
+            if (!window.toiletFinder) {
+                alert('地図の初期化中です。少々お待ちください。');
                 return;
             }
             
-            const service = new google.maps.places.PlacesService(toiletFinder.map);
-            const request = {
-                location: toiletFinder.currentLocation,
-                radius: 1000,
-                type: ['convenience_store']
-            };
-            
-            service.nearbySearch(request, (results, status) => {
-                if (status === google.maps.places.PlacesServiceStatus.OK) {
-                    let added = 0;
-                    results.forEach(place => {
-                        const toilet = {
-                            id: 'places-' + place.place_id,
-                            name: place.name,
-                            lat: place.geometry.location.lat(),
-                            lng: place.geometry.location.lng(),
-                            type: 'convenience',
-                            free: true,
-                            wheelchair: false,
-                            isPreset: true,
-                            notes: '営業時間は店舗により異なります'
-                        };
-                        
-                        // 重複チェック
-                        const exists = toiletFinder.toilets.some(t => 
-                            Math.abs(t.lat - toilet.lat) < 0.0001 && 
-                            Math.abs(t.lng - toilet.lng) < 0.0001
-                        );
-                        
-                        if (!exists) {
-                            toiletFinder.addToilet(toilet);
-                            added++;
-                        }
-                    });
-                    
-                    alert(`${added}件のコンビニを追加しました！`);
-                    updateStats();
-                } else {
-                    console.error('Places search failed:', status);
-                }
-            });
+            // searchNearbyStores関数を呼び出す
+            toiletFinder.searchNearbyStores();
         });
         
         // Maps API読み込みエラーハンドリング
