@@ -32,6 +32,19 @@
             
             <!-- Google Places検索ボタン -->
             <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
+            
+            <!-- 緊急ボタン追加 -->
+            <button id="emergencyBtn" class="emergency-btn" onclick="if(toiletFinder) toiletFinder.emergencyMode()">🚨 緊急</button>
+        </div>
+        
+        <!-- フィルターボタン追加 -->
+        <div class="filter-buttons" style="margin: 10px 0;">
+            <button onclick="if(toiletFinder) toiletFinder.toggleFilter('showFree')" class="filter-btn">
+                🆓 無料のみ
+            </button>
+            <button onclick="if(toiletFinder) toiletFinder.toggleFilter('showWheelchair')" class="filter-btn">
+                ♿ バリアフリー
+            </button>
         </div>
         
         <div class="main-content">
