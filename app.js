@@ -414,10 +414,12 @@ class ToiletFinder {
         const request = {
             origin: this.currentLocation,
             destination: { lat: toilet.lat, lng: toilet.lng },
-            travelMode: google.maps.TravelMode.BICYCLING
+            travelMode: google.maps.TravelMode.WALKING  // BICYCLINGからWALKINGに変更（日本では自転車ルートが利用できない場合がある）
         };
         
         this.directionsService.route(request, (result, status) => {
+            console.log('道順取得結果:', status, result);
+            
             if (status === 'OK') {
                 this.directionsRenderer.setDirections(result);
                 document.getElementById('directionsPanel').style.display = 'block';
@@ -432,7 +434,27 @@ class ToiletFinder {
                     </div>
                 `;
             } else {
-                alert('道順を取得できませんでした: ' + status);
+                console.error('道順取得エラー:', status);
+                
+                // より詳細なエラーメッセージ
+                let errorMessage = '道順を取得できませんでした: ';
+                switch(status) {
+                    case 'ZERO_RESULTS':
+                        errorMessage += 'ルートが見つかりませんでした';
+                        break;
+                    case 'NOT_FOUND':
+                        errorMessage += '場所が見つかりませんでした';
+                        break;
+                    case 'REQUEST_DENIED':
+                        errorMessage += 'リクエストが拒否されました';
+                        break;
+                    case 'OVER_QUERY_LIMIT':
+                        errorMessage += 'リクエスト制限に達しました';
+                        break;
+                    default:
+                        errorMessage += status;
+                }
+                alert(errorMessage);
             }
         });
     }
@@ -555,7 +577,7 @@ class ToiletFinder {
         // Places APIが利用可能か確認
         if (!google.maps.places) {
             console.error('Places APIが読み込まれていません');
-            alert('Places APIが利用できません。APIの設定を確認してください。');
+            alert('Places APIが利用できません。APIの設定を確認してください。\n\n【確認事項】\n1. Google Cloud ConsoleでPlaces APIを有効化\n2. APIキーに制限がある場合は「Maps JavaScript API」と「Places API」を許可\n3. 請求先アカウントが設定されているか確認');
             return;
         }
         
@@ -577,7 +599,7 @@ class ToiletFinder {
                 results.forEach(place => {
                     const toilet = {
                         id: 'places-' + place.place_id,
-                        name: place.name,
+                        name: place.name + ' (コンビニ)',
                         lat: place.geometry.location.lat(),
                         lng: place.geometry.location.lng(),
                         type: 'convenience',
@@ -619,8 +641,13 @@ class ToiletFinder {
                         errorMessage += 'APIの利用制限に達しました';
                         break;
                     case google.maps.places.PlacesServiceStatus.REQUEST_DENIED:
-                        errorMessage += 'リクエストが拒否されました。APIキーを確認してください';
-                        break;
+                        errorMessage += 'リクエストが拒否されました。\n\n【対処法】\n1. Google Cloud ConsoleでPlaces APIを有効化してください\n2. APIキーの制限設定を確認してください\n3. 請求先アカウントが設定されているか確認してください';
+                        
+                        // 代替案の提供
+                        if (confirm(errorMessage + '\n\n代わりに手動でコンビニデータを追加しますか？')) {
+                            this.addManualConvenienceStores();
+                        }
+                        return;
                     default:
                         errorMessage += status;
                 }
@@ -628,6 +655,35 @@ class ToiletFinder {
                 alert(errorMessage);
             }
         });
+    }
+    
+    // 手動でコンビニデータを追加（Places APIが使えない場合の代替）
+    addManualConvenienceStores() {
+        const manualStores = [
+            { name: 'セブンイレブン（例）', lat: this.currentLocation.lat + 0.002, lng: this.currentLocation.lng + 0.002 },
+            { name: 'ファミリーマート（例）', lat: this.currentLocation.lat - 0.002, lng: this.currentLocation.lng + 0.002 },
+            { name: 'ローソン（例）', lat: this.currentLocation.lat + 0.002, lng: this.currentLocation.lng - 0.002 },
+        ];
+        
+        let added = 0;
+        manualStores.forEach((store, index) => {
+            const toilet = {
+                id: 'manual-' + Date.now() + '-' + index,
+                name: store.name,
+                lat: store.lat,
+                lng: store.lng,
+                type: 'convenience',
+                free: true,
+                wheelchair: false,
+                isPreset: false,
+                notes: '手動追加データ（実際の位置と異なる場合があります）'
+            };
+            
+            this.addToilet(toilet);
+            added++;
+        });
+        
+        alert(`${added}件のサンプルコンビニデータを追加しました。\n実際のコンビニ位置は地図をクリックして手動で追加してください。`);
     }
 }
 
