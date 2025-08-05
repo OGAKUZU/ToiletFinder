@@ -34,7 +34,7 @@
             <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
             
             <!-- 緊急ボタン追加 -->
-            <button id="emergencyBtn" class="emergency-btn" onclick="if(toiletFinder) toiletFinder.emergencyMode()">🚨 緊急</button>
+            <button id="emergencyBtn" class="emergency-btn" onclick="if(toiletFinder) toiletFinder.emergencyMode()">🚨 緊急！発射前に押すべし！</button>
         </div>
         
         <!-- フィルターボタン追加 -->
@@ -213,28 +213,41 @@
             const file = e.target.files[0];
             if (!file) return;
             
+            console.log('CSVファイル選択:', file.name);
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 const csv = e.target.result;
+                console.log('CSV読み込み完了、長さ:', csv.length);
                 parseCSV(csv);
             };
-            reader.readAsText(file);
+            reader.onerror = function(e) {
+                console.error('ファイル読み込みエラー:', e);
+                alert('ファイルの読み込みに失敗しました');
+            };
+            reader.readAsText(file, 'UTF-8');
         });
         
         function parseCSV(csv) {
-            const lines = csv.split('\n');
-            const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+            console.log('CSV解析開始');
             
-            // ヘッダーの確認
-            const requiredHeaders = ['名称', '緯度', '経度'];
-            const headerMapping = {
-                '名称': ['名称', 'name', '施設名', 'トイレ名'],
-                '緯度': ['緯度', 'lat', 'latitude', '北緯'],
-                '経度': ['経度', 'lng', 'lon', 'longitude', '東経'],
-                '住所': ['住所', 'address', '所在地'],
-                '多目的': ['多目的', '車椅子', 'wheelchair', 'バリアフリー'],
-                '営業時間': ['営業時間', '利用時間', 'hours']
-            };
+            // BOMを除去
+            if (csv.charCodeAt(0) === 0xFEFF) {
+                csv = csv.substr(1);
+            }
+            
+            // 改行で分割（Windows/Mac/Linux対応）
+            const lines = csv.split(/\r\n|\r|\n/).filter(line => line.trim() !== '');
+            console.log('行数:', lines.length);
+            
+            if (lines.length < 2) {
+                alert('CSVファイルにデータがありません');
+                return;
+            }
+            
+            // ヘッダーを取得
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            console.log('CSVヘッダー:', headers);
             
             // CSVプレビューモーダルを表示
             document.getElementById('csvImportModal').style.display = 'block';
@@ -248,29 +261,76 @@
             
             document.getElementById('importBtn').style.display = 'block';
             document.getElementById('importBtn').onclick = function() {
-                importToilets(lines, headers, headerMapping);
+                importToilets(lines, headers);
             };
         }
         
-        function importToilets(lines, headers, mapping) {
+        function importToilets(lines, headers) {
+            console.log('インポート開始');
             let imported = 0;
+            let failed = 0;
             
+            // ヘッダーのインデックスを取得
+            const nameIndex = headers.findIndex(h => h === '名称' || h === 'name' || h === '施設名');
+            const latIndex = headers.findIndex(h => h === '緯度' || h === 'lat' || h === 'latitude');
+            const lngIndex = headers.findIndex(h => h === '経度' || h === 'lng' || h === 'longitude' || h === 'lon');
+            const addressIndex = headers.findIndex(h => h === '所在地' || h === '住所' || h === 'address');
+            const typeIndex = headers.findIndex(h => h === '分類' || h === 'type' || h === '種類');
+            
+            console.log('カラムインデックス:', { nameIndex, latIndex, lngIndex, addressIndex, typeIndex });
+            
+            if (nameIndex === -1 || latIndex === -1 || lngIndex === -1) {
+                alert('必要な列（名称、緯度、経度）が見つかりません\n検出されたヘッダー: ' + headers.join(', '));
+                return;
+            }
+            
+            // データ行を処理
             for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',');
-                if (values.length < 3) continue;
+                const line = lines[i].trim();
+                if (!line) continue;
                 
-                // ヘッダーマッピング
-                const nameIndex = findHeaderIndex(headers, mapping['名称']);
-                const latIndex = findHeaderIndex(headers, mapping['緯度']);
-                const lngIndex = findHeaderIndex(headers, mapping['経度']);
+                // CSVの行を解析（カンマ区切り、ダブルクォート対応）
+                const values = [];
+                let current = '';
+                let inQuotes = false;
                 
-                if (nameIndex === -1 || latIndex === -1 || lngIndex === -1) continue;
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                console.log(`行${i}:`, values);
+                
+                // 必要なデータを取得
+                const name = values[nameIndex] || '';
+                const latStr = values[latIndex] || '';
+                const lngStr = values[lngIndex] || '';
+                
+                // 数値に変換
+                const lat = parseFloat(latStr);
+                const lng = parseFloat(lngStr);
+                
+                console.log(`データ: name="${name}", lat=${lat}, lng=${lng}`);
+                
+                if (!name || isNaN(lat) || isNaN(lng)) {
+                    console.log('スキップ（データ不正）');
+                    failed++;
+                    continue;
+                }
                 
                 const toilet = {
-                    id: 'import-' + Date.now() + '-' + i,
-                    name: values[nameIndex].trim().replace(/"/g, ''),
-                    lat: parseFloat(values[latIndex]),
-                    lng: parseFloat(values[lngIndex]),
+                    id: 'csv-' + Date.now() + '-' + i,
+                    name: name,
+                    lat: lat,
+                    lng: lng,
                     type: 'other',
                     free: true,
                     wheelchair: false,
@@ -279,35 +339,35 @@
                 };
                 
                 // オプション項目
-                const addressIndex = findHeaderIndex(headers, mapping['住所']);
-                if (addressIndex !== -1) {
-                    toilet.notes = values[addressIndex].trim().replace(/"/g, '');
+                if (addressIndex !== -1 && values[addressIndex]) {
+                    toilet.notes = values[addressIndex];
                 }
                 
-                const wheelchairIndex = findHeaderIndex(headers, mapping['多目的']);
-                if (wheelchairIndex !== -1) {
-                    toilet.wheelchair = values[wheelchairIndex] === '有' || 
-                                       values[wheelchairIndex] === '○' || 
-                                       values[wheelchairIndex] === 'true';
+                // 分類からタイプを推測
+                if (typeIndex !== -1 && values[typeIndex]) {
+                    const typeStr = values[typeIndex].toLowerCase();
+                    if (typeStr.includes('公園')) {
+                        toilet.type = 'park';
+                    } else if (typeStr.includes('駅')) {
+                        toilet.type = 'station';
+                    }
                 }
                 
-                if (!isNaN(toilet.lat) && !isNaN(toilet.lng)) {
+                console.log('追加するトイレ:', toilet);
+                
+                if (window.toiletFinder) {
                     toiletFinder.addToilet(toilet);
                     imported++;
+                } else {
+                    console.error('toiletFinderが初期化されていません');
+                    alert('地図の初期化が完了していません。少し待ってから再試行してください。');
+                    return;
                 }
             }
             
-            alert(`${imported}件のトイレ情報をインポートしました！`);
+            alert(`${imported}件のトイレ情報をインポートしました！\n（${failed}件スキップ）`);
             closeCSVModal();
             updateStats();
-        }
-        
-        function findHeaderIndex(headers, possibleNames) {
-            for (let name of possibleNames) {
-                const index = headers.indexOf(name.toLowerCase());
-                if (index !== -1) return index;
-            }
-            return -1;
         }
         
         function closeCSVModal() {
