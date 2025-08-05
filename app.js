@@ -411,11 +411,22 @@ class ToiletFinder {
             return;
         }
         
+        // Directions APIが有効か確認
+        if (!this.directionsService) {
+            console.error('Directions Service not initialized');
+            alert('ルート検索機能が初期化されていません');
+            return;
+        }
+        
         const request = {
             origin: this.currentLocation,
             destination: { lat: toilet.lat, lng: toilet.lng },
-            travelMode: google.maps.TravelMode.WALKING  // BICYCLINGからWALKINGに変更（日本では自転車ルートが利用できない場合がある）
+            travelMode: google.maps.TravelMode.WALKING,  // 徒歩モードに変更
+            unitSystem: google.maps.UnitSystem.METRIC,
+            language: 'ja'
         };
+        
+        console.log('道順リクエスト:', request);
         
         this.directionsService.route(request, (result, status) => {
             console.log('道順取得結果:', status, result);
@@ -430,7 +441,7 @@ class ToiletFinder {
                 document.getElementById('directionsText').innerHTML = `
                     <div style="margin-bottom: 10px;">
                         <strong>${toilet.name}までの道順</strong><br>
-                        <small>距離: ${leg.distance.text} | 時間: ${leg.duration.text}</small>
+                        <small>距離: ${leg.distance.text} | 時間: ${leg.duration.text}（徒歩）</small>
                     </div>
                 `;
             } else {
@@ -446,8 +457,11 @@ class ToiletFinder {
                         errorMessage += '場所が見つかりませんでした';
                         break;
                     case 'REQUEST_DENIED':
-                        errorMessage += 'リクエストが拒否されました';
-                        break;
+                        errorMessage = 'ルート検索が拒否されました。\n\n【対処法】\n1. Google Cloud ConsoleでDirections APIを有効化してください\n2. APIキーの制限を確認してください';
+                        if (confirm(errorMessage + '\n\n代わりに直線距離を表示しますか？')) {
+                            this.showDirectDistance(toilet);
+                        }
+                        return;
                     case 'OVER_QUERY_LIMIT':
                         errorMessage += 'リクエスト制限に達しました';
                         break;
@@ -459,8 +473,45 @@ class ToiletFinder {
         });
     }
     
+    // 直線距離を表示（Directions APIが使えない場合の代替）
+    showDirectDistance(toilet) {
+        const distance = this.calculateDistance(
+            this.currentLocation.lat,
+            this.currentLocation.lng,
+            toilet.lat,
+            toilet.lng
+        );
+        
+        // マップ上に直線を描画
+        const line = new google.maps.Polyline({
+            path: [this.currentLocation, {lat: toilet.lat, lng: toilet.lng}],
+            geodesic: true,
+            strokeColor: '#FF0000',
+            strokeOpacity: 0.8,
+            strokeWeight: 2
+        });
+        line.setMap(this.map);
+        
+        // 保存しておいて後で削除できるようにする
+        this.currentLine = line;
+        
+        document.getElementById('directionsPanel').style.display = 'block';
+        document.getElementById('clearDirectionsBtn').style.display = 'inline-block';
+        document.getElementById('directionsText').innerHTML = `
+            <div style="margin-bottom: 10px;">
+                <strong>${toilet.name}まで</strong><br>
+                <small>直線距離: ${(distance * 1000).toFixed(0)}m</small><br>
+                <small style="color: #666;">※ルート検索は利用できません</small>
+            </div>
+        `;
+    }
+    
     clearDirections() {
         this.directionsRenderer.setDirections({routes: []});
+        if (this.currentLine) {
+            this.currentLine.setMap(null);
+            this.currentLine = null;
+        }
         document.getElementById('directionsPanel').style.display = 'none';
         document.getElementById('clearDirectionsBtn').style.display = 'none';
     }
