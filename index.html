@@ -423,5 +423,22 @@
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap"
         onerror="console.error('Google Maps APIの読み込みに失敗しました:', this.src)">
     </script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+    // Firebaseの設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyCSYSu-BS7zffRl0umu1YwXpW2znrBA7jM",
+  　　　 authDomain: "toiletfinder-8bd3a.firebaseapp.com",
+        databaseURL: "https://toiletfinder-8bd3a-default-rtdb.firebaseio.com",
+        projectId: "toiletfinder-8bd3a",
+        storageBucket: "toiletfinder-8bd3a.firebasestorage.app",
+        messagingSenderId: "738709661269",
+        appId: "1:738709661269:web:baaf76b8d2b357952b16dc",
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+</script>
 </body>
 </html>
