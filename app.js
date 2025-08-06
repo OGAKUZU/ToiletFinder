@@ -752,3 +752,101 @@ function initMap() {
 
 // window オブジェクトに設定（Google Maps APIから呼び出されるため）
 window.initMap = initMap;
+// データ保存メソッドを修正
+saveToilets() {
+    // ローカルストレージにも保存（オフライン対応）
+    const userToilets = this.toilets.filter(t => !t.isPreset);
+    localStorage.setItem('toiletFinderToilets', JSON.stringify(userToilets));
+    
+    // Firebaseに保存
+    if (typeof firebase !== 'undefined') {
+        userToilets.forEach(toilet => {
+            database.ref('toilets/' + toilet.id).set(toilet);
+        });
+    }
+}
+
+// データ読み込みメソッドを修正
+loadToilets() {
+    // 既存のローカルストレージ読み込み
+    const saved = localStorage.getItem('toiletFinderToilets');
+    if (saved) {
+        try {
+            const savedToilets = JSON.parse(saved);
+            this.toilets = savedToilets;
+        } catch (e) {
+            console.error('保存データの読み込みエラー:', e);
+            this.toilets = [];
+        }
+    }
+    
+    // Firebaseから読み込み
+    if (typeof firebase !== 'undefined') {
+        database.ref('toilets').once('value', (snapshot) => {
+            const firebaseToilets = snapshot.val();
+            if (firebaseToilets) {
+                Object.values(firebaseToilets).forEach(toilet => {
+                    // 重複チェック
+                    const exists = this.toilets.some(t => t.id === toilet.id);
+                    if (!exists) {
+                        this.toilets.push(toilet);
+                    }
+                });
+                this.displayToilets();
+                updateStats();
+            }
+        });
+        
+        // リアルタイム更新を監視
+        database.ref('toilets').on('child_added', (snapshot) => {
+            const newToilet = snapshot.val();
+            const exists = this.toilets.some(t => t.id === newToilet.id);
+            if (!exists) {
+                this.toilets.push(newToilet);
+                this.createToiletMarker(newToilet);
+                updateStats();
+            }
+        });
+    }
+    
+    // 初期データを追加
+    if (window.INITIAL_TOILET_DATA) {
+        window.INITIAL_TOILET_DATA.forEach(initialToilet => {
+            const exists = this.toilets.some(t => 
+                t.id === initialToilet.id || 
+                (Math.abs(t.lat - initialToilet.lat) < 0.0001 && 
+                 Math.abs(t.lng - initialToilet.lng) < 0.0001)
+            );
+            
+            if (!exists) {
+                this.toilets.push(initialToilet);
+            }
+        });
+    }
+}
+
+// トイレ削除メソッドも修正
+deleteToilet(toiletId) {
+    // 既存の処理
+    const index = this.toilets.findIndex(t => t.id === toiletId);
+    if (index !== -1) {
+        this.toilets.splice(index, 1);
+        this.saveToilets();
+        
+        // Firebaseからも削除
+        if (typeof firebase !== 'undefined') {
+            database.ref('toilets/' + toiletId).remove();
+        }
+    }
+    
+    // マーカーを削除（既存のコード）
+    const markerIndex = this.markers.findIndex(m => m.toilet.id === toiletId);
+    if (markerIndex !== -1) {
+        const markerData = this.markers[markerIndex];
+        markerData.marker.setMap(null);
+        markerData.infoWindow.close();
+        this.markers.splice(markerIndex, 1);
+    }
+    
+    updateStats();
+}
