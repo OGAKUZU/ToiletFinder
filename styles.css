@@ -1,409 +1,477 @@
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f5f5f5;
-    color: #333;
-}
-
-header {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    color: white;
-    padding: 1rem;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-header h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-}
-
-header p {
-    opacity: 0.9;
-    font-size: 1rem;
-}
-
-main {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 1rem;
-}
-
-.controls {
-    display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-}
-
-.btn-primary, .btn-secondary {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-}
-
-.btn-primary {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.btn-primary:hover {
-    background-color: #45a049;
-    transform: translateY(-2px);
-}
-
-.btn-secondary {
-    background-color: #2196F3;
-    color: white;
-}
-
-.btn-secondary:hover {
-    background-color: #1976D2;
-    transform: translateY(-2px);
-}
-
-.btn-clear {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    background-color: #FF9800;
-    color: white;
-}
-
-.btn-clear:hover {
-    background-color: #F57C00;
-    transform: translateY(-2px);
-}
-
-.ad-banner {
-    background: linear-gradient(45deg, #FF6B6B, #4ECDC4);
-    color: white;
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 8px;
-    text-align: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.ad-content p {
-    margin: 0;
-    font-weight: 500;
-}
-
-.main-content {
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
-}
-
-.sidebar {
-    width: 300px;
-    flex-shrink: 0;
-}
-
-.ad-sidebar {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
-}
-
-.ad-sidebar h4 {
-    margin-bottom: 1rem;
-    color: #333;
-    border-bottom: 2px solid #4CAF50;
-    padding-bottom: 0.5rem;
-}
-
-.ad-item {
-    padding: 0.75rem;
-    margin-bottom: 0.5rem;
-    background: #f8f9fa;
-    border-radius: 5px;
-    border-left: 4px solid #4CAF50;
-}
-
-.ad-item p {
-    margin: 0 0 0.25rem 0;
-    font-weight: 500;
-}
-
-.ad-item small {
-    color: #666;
-    font-size: 0.8rem;
-}
-
-.directions-panel {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-.directions-panel h4 {
-    margin-bottom: 1rem;
-    color: #333;
-    border-bottom: 2px solid #2196F3;
-    padding-bottom: 0.5rem;
-}
-
-#directionsText {
-    max-height: 300px;
-    overflow-y: auto;
-    font-size: 0.9rem;
-    line-height: 1.4;
-}
-
-.map-container {
-    flex: 1;
-    height: 70vh;
-    min-height: 400px;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    overflow: hidden;
-}
-
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0,0,0,0.5);
-}
-
-.modal-content {
-    background-color: white;
-    margin: 5% auto;
-    padding: 2rem;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 500px;
-    max-height: 80vh;
-    overflow-y: auto;
-    position: relative;
-}
-
-.close {
-    position: absolute;
-    right: 1rem;
-    top: 1rem;
-    font-size: 2rem;
-    font-weight: bold;
-    cursor: pointer;
-    color: #aaa;
-}
-
-.close:hover {
-    color: #333;
-}
-
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.form-group input,
-.form-group select,
-.form-group textarea {
-    width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 1rem;
-}
-
-.form-group textarea {
-    resize: vertical;
-    height: 80px;
-}
-
-.form-group input[type="checkbox"] {
-    width: auto;
-    margin-right: 0.5rem;
-}
-
-.form-actions {
-    display: flex;
-    gap: 1rem;
-    justify-content: flex-end;
-    margin-top: 1.5rem;
-}
-
-/* 緊急ボタン */
-.emergency-btn {
-    background: #f44336 !important;
-    color: white;
-    font-weight: bold;
-    animation: pulse 1s infinite;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 1rem;
-    transition: all 0.3s ease;
-}
-
-.emergency-btn:hover {
-    background: #d32f2f !important;
-    animation: none;
-    transform: translateY(-2px);
-}
-
-@keyframes pulse {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.05); }
-    100% { transform: scale(1); }
-}
-
-/* フィルターボタン */
-.filter-btn {
-    background: white;
-    border: 2px solid #ddd;
-    padding: 8px 15px;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s;
-    font-size: 0.9rem;
-    margin-right: 0.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.filter-btn:hover {
-    border-color: #4CAF50;
-    color: #4CAF50;
-}
-
-.filter-btn.active {
-    background: #4CAF50;
-    color: white;
-    border-color: #4CAF50;
-}
-
-/* 評価表示 */
-.rating {
-    color: #ffc107;
-    font-size: 1.1rem;
-    letter-spacing: 0.1em;
-}
-
-.rating.empty {
-    color: #ddd;
-}
-
-/* 統計パネル */
-.stats-panel {
-    background: white;
-    padding: 1rem;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    margin-bottom: 1rem;
-}
-
-.stats-panel h4 {
-    margin-bottom: 1rem;
-    color: #333;
-    border-bottom: 2px solid #4CAF50;
-    padding-bottom: 0.5rem;
-}
-
-.stats-panel p {
-    margin: 0.5rem 0;
-    display: flex;
-    justify-content: space-between;
-}
-
-.stats-panel span {
-    font-weight: bold;
-    color: #4CAF50;
-}
-
-/* CSVインポート用 */
-.csv-instructions {
-    background: #f5f5f5;
-    padding: 1rem;
-    border-radius: 5px;
-    margin-top: 1rem;
-}
-
-.csv-instructions ul {
-    margin: 0.5rem 0;
-    padding-left: 1.5rem;
-}
-
-@media (max-width: 768px) {
-    header h1 {
-        font-size: 1.5rem;
-    }
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>トイレファインダー - 自転車でも安心</title>
+    <link rel="stylesheet" href="styles.css">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1636079219527574"
+     crossorigin="anonymous"></script>
+</head>
+<body>
+    <header>
+        <h1>🚻 トイレファインダー</h1>
+        <p>自転車での遠出も安心！みんなでトイレ情報を共有しよう</p>
+    </header>
     
-    .controls {
-        justify-content: center;
-    }
+    <main>
+        <div class="ad-banner">
+            <div class="ad-content">
+                <p>🚴‍♂️ サイクリングの必需品</p>
+                <div style="margin-top: 10px;">
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
+                       style="color: white; margin: 0 10px;">携帯トイレ</a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                       style="color: white; margin: 0 10px;">サドルバッグ</a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                       style="color: white; margin: 0 10px;">除菌グッズ</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
+            <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
+            <button id="clearDirectionsBtn" class="btn-clear" style="display:none;">🗺️ 道順を消去</button>
+            
+            <!-- CSVインポートボタン追加 -->
+            <button id="importCSVBtn" class="btn-secondary" onclick="document.getElementById('csvFile').click()">
+                📂 CSVインポート
+            </button>
+            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+            
+            <!-- Google Places検索ボタン -->
+            <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
+            
+            <!-- 緊急ボタン追加 -->
+            <button id="emergencyBtn" class="emergency-btn" onclick="if(toiletFinder) toiletFinder.emergencyMode()">🚨 緊急！発射前に押すべし！</button>
+        </div>
+        
+        <!-- フィルターボタン追加 -->
+        <div class="filter-buttons" style="margin: 10px 0;">
+            <button onclick="if(toiletFinder) toiletFinder.toggleFilter('showFree')" class="filter-btn">
+                🆓 無料のみ
+            </button>
+            <button onclick="if(toiletFinder) toiletFinder.toggleFilter('showWheelchair')" class="filter-btn">
+                ♿ バリアフリー
+            </button>
+        </div>
+        
+        <div class="main-content">
+            <div id="map" class="map-container"></div>
+            <div class="sidebar">
+                <div class="ad-sidebar">
+                    <h4>おすすめ商品</h4>
+                    
+                    <!-- 商品1 -->
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
+                           style="text-decoration: none; color: inherit;">
+                            <p>🚽 携帯トイレ 非常用</p>
+                            <small>緊急時に便利！コンパクトで持ち運び簡単</small>
+                        </a>
+                    </div>
+                    
+                    <!-- 商品2 -->
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                           style="text-decoration: none; color: inherit;">
+                            <p>🚴 サイクリング用サドルバッグ</p>
+                            <small>携帯トイレも収納可能な大容量タイプ</small>
+                        </a>
+                    </div>
+                    
+                    <!-- 商品3 -->
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                           style="text-decoration: none; color: inherit;">
+                            <p>💧 携帯用除菌スプレー</p>
+                            <small>公衆トイレ利用時の必需品</small>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 統計情報表示 -->
+                <div class="stats-panel">
+                    <h4>📊 トイレ統計</h4>
+                    <div id="toiletStats">
+                        <p>総トイレ数: <span id="totalCount">0</span></p>
+                        <p>無料トイレ: <span id="freeCount">0</span></p>
+                        <p>バリアフリー: <span id="wheelchairCount">0</span></p>
+                    </div>
+                </div>
+                
+                <div id="directionsPanel" class="directions-panel" style="display:none;">
+                    <h4>📍 道順</h4>
+                    <div id="directionsText"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- CSVインポートモーダル -->
+        <div id="csvImportModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeCSVModal()">&times;</span>
+                <h2>CSVデータインポート</h2>
+                <div id="csvPreview">
+                    <p>CSVファイルを選択してください</p>
+                    <div class="csv-instructions">
+                        <h4>対応形式：</h4>
+                        <ul>
+                            <li>自治体のオープンデータ（公衆トイレ一覧）</li>
+                            <li>最低限必要な列: 名称, 緯度, 経度</li>
+                            <li>オプション: 住所, 多目的トイレ, 営業時間など</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button id="importBtn" class="btn-primary" style="display:none;">インポート</button>
+                    <button class="btn-secondary" onclick="closeCSVModal()">キャンセル</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="addToiletModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>トイレ情報を追加</h2>
+                <form id="toiletForm">
+                    <div class="form-group">
+                        <label for="toiletName">名前:</label>
+                        <input type="text" id="toiletName" name="toiletName" required placeholder="例: コンビニのトイレ">
+                    </div>
+                    <div class="form-group">
+                        <label for="toiletType">種類:</label>
+                        <select id="toiletType" name="toiletType" required>
+                            <option value="convenience">コンビニ</option>
+                            <option value="park">公園</option>
+                            <option value="station">駅</option>
+                            <option value="restaurant">レストラン・カフェ</option>
+                            <option value="gas">ガソリンスタンド</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="toiletNotes">備考:</label>
+                        <textarea id="toiletNotes" name="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="toiletFree" name="toiletFree"> 無料
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="toiletWheelchair" name="toiletWheelchair"> ♿ 車椅子対応
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">追加</button>
+                        <button type="button" class="btn-secondary" id="cancelBtn">キャンセル</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
     
-    .btn-primary, .btn-secondary, .btn-clear {
-        flex: 1;
-        min-width: 120px;
-    }
+    <footer style="text-align: center; padding: 20px; color: #666;">
+        <p>※当サイトはAmazonアソシエイトプログラムに参加しています</p>
+    </footer>
     
-    .main-content {
-        flex-direction: column;
-    }
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
-    .sidebar {
-        width: 100%;
-        order: -1;
-    }
+    <script>
+        // Firebaseの設定
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSYSu-BS7zffRl0umu1YwXpW2znrBA7jM",
+            authDomain: "toiletfinder-8bd3a.firebaseapp.com",
+            databaseURL: "https://toiletfinder-8bd3a-default-rtdb.firebaseio.com",
+            projectId: "toiletfinder-8bd3a",
+            storageBucket: "toiletfinder-8bd3a.firebasestorage.app",
+            messagingSenderId: "738709661269",
+            appId: "1:738709661269:web:baaf76b8d2b357952b16dc"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        console.log('Firebase初期化完了');
+        
+        // 初期トイレデータをグローバルに定義
+        window.INITIAL_TOILET_DATA = [
+            {
+                id: "tokyo-station-1",
+                name: "東京駅 丸の内南口 公衆トイレ",
+                type: "station",
+                lat: 35.6797,
+                lng: 139.7677,
+                free: true,
+                wheelchair: true,
+                notes: "改札外、きれいで広い",
+                isPreset: true
+            },
+            {
+                id: "shibuya-hachiko",
+                name: "渋谷駅 ハチ公口 公衆トイレ",
+                type: "station",
+                lat: 35.6590,
+                lng: 139.7005,
+                free: true,
+                wheelchair: true,
+                notes: "ハチ公像近く",
+                isPreset: true
+            },
+            {
+                id: "shinjuku-south",
+                name: "新宿駅 南口 公衆トイレ",
+                type: "station",
+                lat: 35.6896,
+                lng: 139.7006,
+                free: true,
+                wheelchair: true,
+                notes: "駅構内",
+                isPreset: true
+            },
+            {
+                id: "asakusa-kaminari",
+                name: "雷門前 公衆トイレ",
+                type: "park",
+                lat: 35.7105,
+                lng: 139.7927,
+                free: true,
+                wheelchair: true,
+                notes: "観光客多い、混雑注意",
+                isPreset: true
+            },
+            {
+                id: "ueno-park",
+                name: "上野公園 噴水前トイレ",
+                type: "park",
+                lat: 35.7150,
+                lng: 139.7730,
+                free: true,
+                wheelchair: true,
+                notes: "きれいに改装済み",
+                isPreset: true
+            }
+        ];
+        
+        // デバッグ用
+        console.log('ページ読み込み完了');
+        
+        // CSVインポート機能
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            console.log('CSVファイル選択:', file.name);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                console.log('CSV読み込み完了、長さ:', csv.length);
+                parseCSV(csv);
+            };
+            reader.onerror = function(e) {
+                console.error('ファイル読み込みエラー:', e);
+                alert('ファイルの読み込みに失敗しました');
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+        
+        function parseCSV(csv) {
+            console.log('CSV解析開始');
+            
+            // BOMを除去
+            if (csv.charCodeAt(0) === 0xFEFF) {
+                csv = csv.substr(1);
+            }
+            
+            // 改行で分割（Windows/Mac/Linux対応）
+            const lines = csv.split(/\r\n|\r|\n/).filter(line => line.trim() !== '');
+            console.log('行数:', lines.length);
+            
+            if (lines.length < 2) {
+                alert('CSVファイルにデータがありません');
+                return;
+            }
+            
+            // ヘッダーを取得
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            console.log('CSVヘッダー:', headers);
+            
+            // CSVプレビューモーダルを表示
+            document.getElementById('csvImportModal').style.display = 'block';
+            
+            const preview = document.getElementById('csvPreview');
+            preview.innerHTML = `
+                <h4>インポートプレビュー</h4>
+                <p>検出された列: ${headers.join(', ')}</p>
+                <p>データ行数: ${lines.length - 1}</p>
+            `;
+            
+            document.getElementById('importBtn').style.display = 'block';
+            document.getElementById('importBtn').onclick = function() {
+                importToilets(lines, headers);
+            };
+        }
+        
+        function importToilets(lines, headers) {
+            console.log('インポート開始');
+            let imported = 0;
+            let failed = 0;
+            
+            // ヘッダーのインデックスを取得
+            const nameIndex = headers.findIndex(h => h === '名称' || h === 'name' || h === '施設名');
+            const latIndex = headers.findIndex(h => h === '緯度' || h === 'lat' || h === 'latitude');
+            const lngIndex = headers.findIndex(h => h === '経度' || h === 'lng' || h === 'longitude' || h === 'lon');
+            const addressIndex = headers.findIndex(h => h === '所在地' || h === '住所' || h === 'address');
+            const typeIndex = headers.findIndex(h => h === '分類' || h === 'type' || h === '種類');
+            
+            console.log('カラムインデックス:', { nameIndex, latIndex, lngIndex, addressIndex, typeIndex });
+            
+            if (nameIndex === -1 || latIndex === -1 || lngIndex === -1) {
+                alert('必要な列（名称、緯度、経度）が見つかりません\n検出されたヘッダー: ' + headers.join(', '));
+                return;
+            }
+            
+            // データ行を処理
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // CSVの行を解析（カンマ区切り、ダブルクォート対応）
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                console.log(`行${i}:`, values);
+                
+                // 必要なデータを取得
+                const name = values[nameIndex] || '';
+                const latStr = values[latIndex] || '';
+                const lngStr = values[lngIndex] || '';
+                
+                // 数値に変換
+                const lat = parseFloat(latStr);
+                const lng = parseFloat(lngStr);
+                
+                console.log(`データ: name="${name}", lat=${lat}, lng=${lng}`);
+                
+                if (!name || isNaN(lat) || isNaN(lng)) {
+                    console.log('スキップ（データ不正）');
+                    failed++;
+                    continue;
+                }
+                
+                const toilet = {
+                    id: 'csv-' + Date.now() + '-' + i,
+                    name: name,
+                    lat: lat,
+                    lng: lng,
+                    type: 'other',
+                    free: true,
+                    wheelchair: false,
+                    isPreset: true,
+                    addedAt: new Date().toISOString()
+                };
+                
+                // オプション項目
+                if (addressIndex !== -1 && values[addressIndex]) {
+                    toilet.notes = values[addressIndex];
+                }
+                
+                // 分類からタイプを推測
+                if (typeIndex !== -1 && values[typeIndex]) {
+                    const typeStr = values[typeIndex].toLowerCase();
+                    if (typeStr.includes('公園')) {
+                        toilet.type = 'park';
+                    } else if (typeStr.includes('駅')) {
+                        toilet.type = 'station';
+                    }
+                }
+                
+                console.log('追加するトイレ:', toilet);
+                
+                if (window.toiletFinder) {
+                    toiletFinder.addToilet(toilet);
+                    imported++;
+                } else {
+                    console.error('toiletFinderが初期化されていません');
+                    alert('地図の初期化が完了していません。少し待ってから再試行してください。');
+                    return;
+                }
+            }
+            
+            alert(`${imported}件のトイレ情報をインポートしました！\n（${failed}件スキップ）`);
+            closeCSVModal();
+            updateStats();
+        }
+        
+        function closeCSVModal() {
+            document.getElementById('csvImportModal').style.display = 'none';
+            document.getElementById('csvFile').value = '';
+        }
+        
+        // 統計情報の更新（グローバル関数として定義）
+        window.updateStats = function() {
+            if (window.toiletFinder) {
+                const total = toiletFinder.toilets.length;
+                const free = toiletFinder.toilets.filter(t => t.free).length;
+                const wheelchair = toiletFinder.toilets.filter(t => t.wheelchair).length;
+                
+                document.getElementById('totalCount').textContent = total;
+                document.getElementById('freeCount').textContent = free;
+                document.getElementById('wheelchairCount').textContent = wheelchair;
+            }
+        }
+        
+        // 初期化完了時に統計を更新
+        setTimeout(() => {
+            if (window.updateStats) {
+                window.updateStats();
+            }
+        }, 1000);
+        
+        // 周辺のコンビニ検索（Google Places API使用）
+        document.getElementById('searchNearbyBtn').addEventListener('click', function() {
+            console.log('コンビニ検索ボタンクリック');
+            
+            // toiletFinderが初期化されるまで待つ
+            if (!window.toiletFinder) {
+                alert('地図の初期化中です。少々お待ちください。');
+                return;
+            }
+            
+            // searchNearbyStores関数を呼び出す
+            toiletFinder.searchNearbyStores();
+        });
+        
+        // Maps API読み込みエラーハンドリング
+        window.gm_authFailure = function() {
+            console.error('Google Maps APIの認証に失敗しました。APIキーを確認してください。');
+            alert('地図の読み込みに失敗しました。APIキーの設定を確認してください。');
+        };
+    </script>
     
-    .map-container {
-        height: 60vh;
-        width: 100%;
-    }
-    
-    .modal-content {
-        margin: 10% auto;
-        padding: 1.5rem;
-    }
-    
-    .form-actions {
-        flex-direction: column;
-    }
-    
-    .form-actions button {
-        width: 100%;
-    }
-    
-    .ad-banner {
-        font-size: 0.9rem;
-    }
-    
-    .emergency-btn {
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-    }
-    
-    .filter-btn {
-        padding: 6px 12px;
-        font-size: 0.8rem;
-    }
-}
+    <script src="app.js"></script>
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap"
+        onerror="console.error('Google Maps APIの読み込みに失敗しました:', this.src)">
+    </script>
+</body>
+</html>
