@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>トイレファインダー - 自転車でも安心</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Google AdSense -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1636079219527574"
-         crossorigin="anonymous"></script>
+    <!-- Google AdSense（後で有効化） -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1636079219527574"
+         crossorigin="anonymous"></script> -->
 </head>
 <body>
     <header>
@@ -189,9 +189,22 @@
         };
         
         // Firebase初期化
-        firebase.initializeApp(firebaseConfig);
-        window.database = firebase.database();
-        console.log('Firebase初期化完了');
+        try {
+            firebase.initializeApp(firebaseConfig);
+            window.database = firebase.database();
+            console.log('Firebase初期化完了');
+            
+            // 接続テスト
+            database.ref('.info/connected').on('value', function(snapshot) {
+                if (snapshot.val() === true) {
+                    console.log('Firebaseに接続されました');
+                } else {
+                    console.log('Firebaseに接続されていません');
+                }
+            });
+        } catch (error) {
+            console.error('Firebase初期化エラー:', error);
+        }
         
         // 初期トイレデータ
         window.INITIAL_TOILET_DATA = [
