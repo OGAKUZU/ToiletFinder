@@ -8,12 +8,13 @@ class ToiletFinder {
         this.directionsService = null;
         this.directionsRenderer = null;
         this.markers = [];
-        this.infoWindows = []; // InfoWindowを管理
+        this.infoWindows = [];
         this.filters = {
             showOpen: false,
             showFree: false,
             showWheelchair: false
         };
+        this.lastSubmitTime = 0; // レート制限用
         
         this.init();
     }
@@ -41,7 +42,6 @@ class ToiletFinder {
             clearDirectionsBtn.addEventListener('click', () => this.clearDirections());
         }
         
-        // モーダルの閉じるボタン
         closeBtns.forEach(btn => {
             btn.addEventListener('click', () => this.closeModal());
         });
@@ -53,7 +53,6 @@ class ToiletFinder {
             toiletForm.addEventListener('submit', (e) => this.handleFormSubmit(e));
         }
         
-        // モーダル外をクリックで閉じる
         window.addEventListener('click', (e) => {
             if (e.target === modal) {
                 this.closeModal();
@@ -61,7 +60,6 @@ class ToiletFinder {
         });
     }
     
-    // 大きなトイレマークのSVGアイコンを生成
     createToiletIcon(color = '#2196F3', size = 40) {
         const svg = `
             <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100">
@@ -95,23 +93,16 @@ class ToiletFinder {
         });
         this.directionsRenderer.setMap(this.map);
         
-        // 地図クリックイベント
         this.map.addListener('click', (e) => {
             if (this.addingToilet) {
                 this.showAddToiletForm(e.latLng);
             }
         });
         
-        // 初期データを読み込み
         this.loadToilets();
-        
-        // 現在地を取得
         this.getCurrentLocation();
-        
-        // トイレを表示
         this.displayToilets();
         
-        // 統計を更新
         if (window.updateStats) {
             window.updateStats();
         }
@@ -129,7 +120,6 @@ class ToiletFinder {
                     };
                     this.map.setCenter(this.currentLocation);
                     
-                    // 現在地マーカー（青い点）
                     new google.maps.Marker({
                         position: this.currentLocation,
                         map: this.map,
@@ -190,7 +180,6 @@ class ToiletFinder {
             this.pendingToiletMarker.setMap(null);
         }
         
-        // 仮マーカーを表示
         this.pendingToiletMarker = new google.maps.Marker({
             position: latLng,
             map: this.map,
@@ -239,11 +228,34 @@ class ToiletFinder {
     }
     
     addToilet(toilet) {
+        // データ検証
+        if (Math.abs(toilet.lat) > 90 || Math.abs(toilet.lng) > 180) {
+            console.error('無効な座標');
+            return;
+        }
+        
+        if (toilet.name && toilet.name.length > 100) {
+            alert('名前が長すぎます（100文字以内）');
+            return;
+        }
+        
+        if (toilet.notes && toilet.notes.length > 500) {
+            alert('備考が長すぎます（500文字以内）');
+            return;
+        }
+        
+        // レート制限
+        const now = Date.now();
+        if (now - this.lastSubmitTime < 5000 && !toilet.isPreset) {
+            alert('しばらく待ってから投稿してください');
+            return;
+        }
+        this.lastSubmitTime = now;
+        
         this.toilets.push(toilet);
         this.saveToilets();
         const marker = this.createToiletMarker(toilet);
         
-        // 統計を更新
         if (window.updateStats) {
             window.updateStats();
         }
@@ -253,7 +265,6 @@ class ToiletFinder {
     }
     
     createToiletMarker(toilet) {
-        // 色分け
         let color;
         if (toilet.isPreset) {
             color = toilet.wheelchair ? '#1976D2' : '#2196F3';
@@ -276,7 +287,6 @@ class ToiletFinder {
         });
         
         marker.addListener('click', () => {
-            // 他のInfoWindowを閉じる
             this.infoWindows.forEach(iw => iw.close());
             infoWindow.open(this.map, marker);
         });
@@ -326,16 +336,18 @@ class ToiletFinder {
         `;
     }
     
-    // トイレを削除する関数
     deleteToilet(toiletId) {
-        // トイレデータから削除
         const index = this.toilets.findIndex(t => t.id === toiletId);
         if (index !== -1) {
             this.toilets.splice(index, 1);
             this.saveToilets();
+            
+            // Firebaseからも削除
+            if (typeof firebase !== 'undefined' && window.database) {
+                database.ref('toilets/' + toiletId).remove();
+            }
         }
         
-        // マーカーを削除
         const markerIndex = this.markers.findIndex(m => m.toilet.id === toiletId);
         if (markerIndex !== -1) {
             const markerData = this.markers[markerIndex];
@@ -344,7 +356,6 @@ class ToiletFinder {
             this.markers.splice(markerIndex, 1);
         }
         
-        // 統計を更新
         if (window.updateStats) {
             window.updateStats();
         }
@@ -352,7 +363,6 @@ class ToiletFinder {
         console.log('トイレ削除完了:', toiletId);
     }
     
-    // IDからトイレを検索して道順を表示
     showDirectionsFromInfo(toiletId) {
         const toilet = this.toilets.find(t => t.id === toiletId);
         if (toilet) {
@@ -368,10 +378,19 @@ class ToiletFinder {
     }
     
     saveToilets() {
-        // プリセットデータは保存しない
+        // ローカルストレージに保存
         const userToilets = this.toilets.filter(t => !t.isPreset);
         localStorage.setItem('toiletFinderToilets', JSON.stringify(userToilets));
         console.log('保存したトイレ数:', userToilets.length);
+        
+        // Firebaseに保存
+        if (typeof firebase !== 'undefined' && window.database) {
+            userToilets.forEach(toilet => {
+                database.ref('toilets/' + toilet.id).set(toilet)
+                    .then(() => console.log('Firebase保存成功:', toilet.id))
+                    .catch(error => console.error('Firebase保存エラー:', error));
+            });
+        }
     }
     
     loadToilets() {
@@ -388,7 +407,39 @@ class ToiletFinder {
             }
         }
         
-        // 初期データを追加（重複チェック）
+        // Firebaseから読み込み
+        if (typeof firebase !== 'undefined' && window.database) {
+            database.ref('toilets').once('value', (snapshot) => {
+                const firebaseToilets = snapshot.val();
+                if (firebaseToilets) {
+                    Object.values(firebaseToilets).forEach(toilet => {
+                        const exists = this.toilets.some(t => t.id === toilet.id);
+                        if (!exists) {
+                            this.toilets.push(toilet);
+                        }
+                    });
+                    this.displayToilets();
+                    if (window.updateStats) {
+                        window.updateStats();
+                    }
+                }
+            });
+            
+            // リアルタイム更新を監視
+            database.ref('toilets').on('child_added', (snapshot) => {
+                const newToilet = snapshot.val();
+                const exists = this.toilets.some(t => t.id === newToilet.id);
+                if (!exists) {
+                    this.toilets.push(newToilet);
+                    this.createToiletMarker(newToilet);
+                    if (window.updateStats) {
+                        window.updateStats();
+                    }
+                }
+            });
+        }
+        
+        // 初期データを追加
         if (window.INITIAL_TOILET_DATA) {
             window.INITIAL_TOILET_DATA.forEach(initialToilet => {
                 const exists = this.toilets.some(t => 
@@ -411,7 +462,6 @@ class ToiletFinder {
             return;
         }
         
-        // Directions APIが有効か確認
         if (!this.directionsService) {
             console.error('Directions Service not initialized');
             alert('ルート検索機能が初期化されていません');
@@ -421,7 +471,7 @@ class ToiletFinder {
         const request = {
             origin: this.currentLocation,
             destination: { lat: toilet.lat, lng: toilet.lng },
-            travelMode: google.maps.TravelMode.WALKING,  // 徒歩モードに変更
+            travelMode: google.maps.TravelMode.WALKING,
             unitSystem: google.maps.UnitSystem.METRIC,
             language: 'ja'
         };
@@ -447,7 +497,6 @@ class ToiletFinder {
             } else {
                 console.error('道順取得エラー:', status);
                 
-                // より詳細なエラーメッセージ
                 let errorMessage = '道順を取得できませんでした: ';
                 switch(status) {
                     case 'ZERO_RESULTS':
@@ -473,7 +522,6 @@ class ToiletFinder {
         });
     }
     
-    // 直線距離を表示（Directions APIが使えない場合の代替）
     showDirectDistance(toilet) {
         const distance = this.calculateDistance(
             this.currentLocation.lat,
@@ -482,7 +530,6 @@ class ToiletFinder {
             toilet.lng
         );
         
-        // マップ上に直線を描画
         const line = new google.maps.Polyline({
             path: [this.currentLocation, {lat: toilet.lat, lng: toilet.lng}],
             geodesic: true,
@@ -492,7 +539,6 @@ class ToiletFinder {
         });
         line.setMap(this.map);
         
-        // 保存しておいて後で削除できるようにする
         this.currentLine = line;
         
         document.getElementById('directionsPanel').style.display = 'block';
@@ -516,11 +562,9 @@ class ToiletFinder {
         document.getElementById('clearDirectionsBtn').style.display = 'none';
     }
     
-    // フィルター機能
     toggleFilter(filterName) {
         this.filters[filterName] = !this.filters[filterName];
         
-        // ボタンのスタイルを更新
         const buttons = document.querySelectorAll('.filter-btn');
         buttons.forEach(btn => {
             if (btn.textContent.includes('営業中') && filterName === 'showOpen') {
@@ -551,7 +595,6 @@ class ToiletFinder {
         });
     }
     
-    // 緊急モード
     emergencyMode() {
         if (!this.currentLocation) {
             alert('現在地が取得できません！位置情報を有効にしてください。');
@@ -580,7 +623,6 @@ class ToiletFinder {
             this.map.setZoom(17);
             this.map.setCenter({ lat: nearestToilet.lat, lng: nearestToilet.lng });
             
-            // 緊急アラート表示
             const alert = document.createElement('div');
             alert.style.cssText = `
                 position: fixed;
@@ -616,7 +658,6 @@ class ToiletFinder {
         return R * c;
     }
     
-    // コンビニ検索機能
     searchNearbyStores() {
         console.log('コンビニ検索開始');
         
@@ -625,17 +666,16 @@ class ToiletFinder {
             return;
         }
         
-        // Places APIが利用可能か確認
         if (!google.maps.places) {
             console.error('Places APIが読み込まれていません');
-            alert('Places APIが利用できません。APIの設定を確認してください。\n\n【確認事項】\n1. Google Cloud ConsoleでPlaces APIを有効化\n2. APIキーに制限がある場合は「Maps JavaScript API」と「Places API」を許可\n3. 請求先アカウントが設定されているか確認');
+            alert('Places APIが利用できません。APIの設定を確認してください。');
             return;
         }
         
         const service = new google.maps.places.PlacesService(this.map);
         const request = {
             location: new google.maps.LatLng(this.currentLocation.lat, this.currentLocation.lng),
-            radius: 1000, // 1km
+            radius: 1000,
             type: 'convenience_store',
             language: 'ja'
         };
@@ -660,7 +700,6 @@ class ToiletFinder {
                         notes: '営業時間は店舗により異なります'
                     };
                     
-                    // 重複チェック
                     const exists = this.toilets.some(t => 
                         Math.abs(t.lat - toilet.lat) < 0.0001 && 
                         Math.abs(t.lng - toilet.lng) < 0.0001
@@ -673,42 +712,18 @@ class ToiletFinder {
                 });
                 
                 alert(`${added}件のコンビニを追加しました！`);
-                updateStats();
+                if (window.updateStats) {
+                    window.updateStats();
+                }
             } else {
                 console.error('Places search failed:', status);
-                let errorMessage = '検索に失敗しました: ';
-                
-                switch(status) {
-                    case google.maps.places.PlacesServiceStatus.ZERO_RESULTS:
-                        errorMessage += '周辺にコンビニが見つかりませんでした';
-                        break;
-                    case google.maps.places.PlacesServiceStatus.ERROR:
-                        errorMessage += 'サーバーエラーが発生しました';
-                        break;
-                    case google.maps.places.PlacesServiceStatus.INVALID_REQUEST:
-                        errorMessage += '無効なリクエストです';
-                        break;
-                    case google.maps.places.PlacesServiceStatus.OVER_QUERY_LIMIT:
-                        errorMessage += 'APIの利用制限に達しました';
-                        break;
-                    case google.maps.places.PlacesServiceStatus.REQUEST_DENIED:
-                        errorMessage += 'リクエストが拒否されました。\n\n【対処法】\n1. Google Cloud ConsoleでPlaces APIを有効化してください\n2. APIキーの制限設定を確認してください\n3. 請求先アカウントが設定されているか確認してください';
-                        
-                        // 代替案の提供
-                        if (confirm(errorMessage + '\n\n代わりに手動でコンビニデータを追加しますか？')) {
-                            this.addManualConvenienceStores();
-                        }
-                        return;
-                    default:
-                        errorMessage += status;
+                if (confirm('検索に失敗しました。手動でサンプルデータを追加しますか？')) {
+                    this.addManualConvenienceStores();
                 }
-                
-                alert(errorMessage);
             }
         });
     }
     
-    // 手動でコンビニデータを追加（Places APIが使えない場合の代替）
     addManualConvenienceStores() {
         const manualStores = [
             { name: 'セブンイレブン（例）', lat: this.currentLocation.lat + 0.002, lng: this.currentLocation.lng + 0.002 },
@@ -734,7 +749,7 @@ class ToiletFinder {
             added++;
         });
         
-        alert(`${added}件のサンプルコンビニデータを追加しました。\n実際のコンビニ位置は地図をクリックして手動で追加してください。`);
+        alert(`${added}件のサンプルコンビニデータを追加しました。`);
     }
 }
 
@@ -746,128 +761,9 @@ function initMap() {
     toiletFinder = new ToiletFinder();
     toiletFinder.initMap();
     
-    // グローバルに公開（デバッグ用）
+    // グローバルに公開
     window.toiletFinder = toiletFinder;
 }
 
-// window オブジェクトに設定（Google Maps APIから呼び出されるため）
+// window オブジェクトに設定
 window.initMap = initMap;
-// データ保存メソッドを修正
-saveToilets() {
-    // ローカルストレージにも保存（オフライン対応）
-    const userToilets = this.toilets.filter(t => !t.isPreset);
-    localStorage.setItem('toiletFinderToilets', JSON.stringify(userToilets));
-    
-    // Firebaseに保存
-    if (typeof firebase !== 'undefined') {
-        userToilets.forEach(toilet => {
-            database.ref('toilets/' + toilet.id).set(toilet);
-        });
-    }
-}
-
-// データ読み込みメソッドを修正
-loadToilets() {
-    // 既存のローカルストレージ読み込み
-    const saved = localStorage.getItem('toiletFinderToilets');
-    if (saved) {
-        try {
-            const savedToilets = JSON.parse(saved);
-            this.toilets = savedToilets;
-        } catch (e) {
-            console.error('保存データの読み込みエラー:', e);
-            this.toilets = [];
-        }
-    }
-    
-    // Firebaseから読み込み
-    if (typeof firebase !== 'undefined') {
-        database.ref('toilets').once('value', (snapshot) => {
-            const firebaseToilets = snapshot.val();
-            if (firebaseToilets) {
-                Object.values(firebaseToilets).forEach(toilet => {
-                    // 重複チェック
-                    const exists = this.toilets.some(t => t.id === toilet.id);
-                    if (!exists) {
-                        this.toilets.push(toilet);
-                    }
-                });
-                this.displayToilets();
-                updateStats();
-            }
-        });
-        
-        // リアルタイム更新を監視
-        database.ref('toilets').on('child_added', (snapshot) => {
-            const newToilet = snapshot.val();
-            const exists = this.toilets.some(t => t.id === newToilet.id);
-            if (!exists) {
-                this.toilets.push(newToilet);
-                this.createToiletMarker(newToilet);
-                updateStats();
-            }
-        });
-    }
-    
-    // 初期データを追加
-    if (window.INITIAL_TOILET_DATA) {
-        window.INITIAL_TOILET_DATA.forEach(initialToilet => {
-            const exists = this.toilets.some(t => 
-                t.id === initialToilet.id || 
-                (Math.abs(t.lat - initialToilet.lat) < 0.0001 && 
-                 Math.abs(t.lng - initialToilet.lng) < 0.0001)
-            );
-            
-            if (!exists) {
-                this.toilets.push(initialToilet);
-            }
-        });
-    }
-}
-
-// トイレ削除メソッドも修正
-deleteToilet(toiletId) {
-    // 既存の処理
-    const index = this.toilets.findIndex(t => t.id === toiletId);
-    if (index !== -1) {
-        this.toilets.splice(index, 1);
-        this.saveToilets();
-        
-        // Firebaseからも削除
-        if (typeof firebase !== 'undefined') {
-            database.ref('toilets/' + toiletId).remove();
-        }
-    }
-    
-    // マーカーを削除（既存のコード）
-    const markerIndex = this.markers.findIndex(m => m.toilet.id === toiletId);
-    if (markerIndex !== -1) {
-        const markerData = this.markers[markerIndex];
-        markerData.marker.setMap(null);
-        markerData.infoWindow.close();
-        this.markers.splice(markerIndex, 1);
-    }
-    
-    updateStats();
-}
-/* アフィリエイトリンク用スタイル */
-.ad-content a {
-    display: inline-block;
-    padding: 5px 10px;
-    background: rgba(255,255,255,0.2);
-    border-radius: 5px;
-    transition: background 0.3s;
-}
-
-.ad-content a:hover {
-    background: rgba(255,255,255,0.3);
-}
-
-.ad-item a {
-    display: block;
-    transition: transform 0.3s;
-}
-
-.ad-item a:hover {
-    transform: translateX(5px);
-}
