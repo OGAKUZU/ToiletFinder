@@ -850,3 +850,24 @@ deleteToilet(toiletId) {
     
     updateStats();
 }
+/* アフィリエイトリンク用スタイル */
+.ad-content a {
+    display: inline-block;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.ad-content a:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.ad-item a {
+    display: block;
+    transition: transform 0.3s;
+}
+
+.ad-item a:hover {
+    transform: translateX(5px);
+}
