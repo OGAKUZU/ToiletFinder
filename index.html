@@ -3,25 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="自転車でも安心！みんなでトイレ情報を共有できる地図アプリ">
     <title>トイレファインダー - 自転車でも安心</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f5f5f5; color: #333; }
-        header { background: linear-gradient(135deg, #4CAF50, #45a049); color: white; padding: 1rem; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
-        header p { opacity: 0.9; font-size: 1rem; }
-        main { max-width: 1200px; margin: 0 auto; padding: 1rem; }
-        .controls { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
-        .btn-primary, .btn-secondary { padding: 0.75rem 1.5rem; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; font-weight: 500; transition: all 0.3s ease; }
-        .btn-primary { background-color: #4CAF50; color: white; }
-        .btn-primary:hover { background-color: #45a049; transform: translateY(-2px); }
-        .btn-secondary { background-color: #2196F3; color: white; }
-        .btn-secondary:hover { background-color: #1976D2; transform: translateY(-2px); }
-        #map { width: 100%; height: 70vh; min-height: 400px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
-        .emergency-btn { background: #f44336 !important; color: white; font-weight: bold; animation: pulse 1s infinite; padding: 0.75rem 1.5rem; border: none; border-radius: 5px; cursor: pointer; font-size: 1rem; }
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
-        .error-message { background: #ffebee; color: #c62828; padding: 1rem; border-radius: 5px; margin: 1rem 0; }
-    </style>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Favicon追加 -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🚻</text></svg>">
+    
+    <!-- Google AdSense（審査通過後に有効化） -->
+    <!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1636079219527574"
+         crossorigin="anonymous"></script> -->
 </head>
 <body>
     <header>
@@ -30,205 +21,170 @@
     </header>
     
     <main>
-        <div class="controls">
-            <button class="btn-primary" onclick="addToilet()">📍 トイレを追加</button>
-            <button class="btn-secondary" onclick="getCurrentLocation()">📍 現在地</button>
-            <button class="btn-secondary" onclick="searchNearby()">🔍 周辺のコンビニ検索</button>
-            <button class="emergency-btn" onclick="emergencyMode()">🚨 緊急！</button>
+        <!-- Amazonアフィリエイトバナー -->
+        <div class="ad-banner">
+            <div class="ad-content">
+                <p>🚴‍♂️ サイクリングの必需品</p>
+                <div style="margin-top: 10px;">
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" class="affiliate-link">
+                        携帯トイレ
+                    </a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" class="affiliate-link">
+                        サドルバッグ
+                    </a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" class="affiliate-link">
+                        除菌グッズ
+                    </a>
+                </div>
+            </div>
         </div>
         
-        <div id="map"></div>
-        <div id="error-message" class="error-message" style="display:none;"></div>
+        <!-- コントロールボタン -->
+        <div class="controls">
+            <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
+            <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
+            <button id="clearDirectionsBtn" class="btn-clear" style="display:none;">🗺️ 道順を消去</button>
+            <button id="importCSVBtn" class="btn-secondary">📂 CSVインポート</button>
+            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+            <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
+            <button id="emergencyBtn" class="emergency-btn">🚨 緊急！発射前に押すべし！</button>
+        </div>
+        
+        <!-- フィルターボタン -->
+        <div class="filter-buttons">
+            <button class="filter-btn" data-filter="showFree">🆓 無料のみ</button>
+            <button class="filter-btn" data-filter="showWheelchair">♿ バリアフリー</button>
+        </div>
+        
+        <!-- メインコンテンツ -->
+        <div class="main-content">
+            <div id="map" class="map-container"></div>
+            <div class="sidebar">
+                <!-- サイドバー広告 -->
+                <div class="ad-sidebar">
+                    <h4>おすすめ商品</h4>
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" class="product-link">
+                            <p>🚽 携帯トイレ 非常用</p>
+                            <small>緊急時に便利！コンパクトで持ち運び簡単</small>
+                        </a>
+                    </div>
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" class="product-link">
+                            <p>🚴 サイクリング用サドルバッグ</p>
+                            <small>携帯トイレも収納可能な大容量タイプ</small>
+                        </a>
+                    </div>
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" class="product-link">
+                            <p>💧 携帯用除菌スプレー</p>
+                            <small>公衆トイレ利用時の必需品</small>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- 統計パネル -->
+                <div class="stats-panel">
+                    <h4>📊 トイレ統計</h4>
+                    <div id="toiletStats">
+                        <p>総トイレ数: <span id="totalCount">0</span></p>
+                        <p>無料トイレ: <span id="freeCount">0</span></p>
+                        <p>バリアフリー: <span id="wheelchairCount">0</span></p>
+                    </div>
+                </div>
+                
+                <!-- 道順パネル -->
+                <div id="directionsPanel" class="directions-panel" style="display:none;">
+                    <h4>📍 道順</h4>
+                    <div id="directionsText"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- モーダル: CSVインポート -->
+        <div id="csvImportModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>CSVデータインポート</h2>
+                <div id="csvPreview">
+                    <p>CSVファイルを選択してください</p>
+                    <div class="csv-instructions">
+                        <h4>対応形式：</h4>
+                        <ul>
+                            <li>自治体のオープンデータ（公衆トイレ一覧）</li>
+                            <li>最低限必要な列: 名称, 緯度, 経度</li>
+                            <li>オプション: 住所, 多目的トイレ, 営業時間など</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button id="importBtn" class="btn-primary" style="display:none;">インポート</button>
+                    <button class="btn-secondary close-modal">キャンセル</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- モーダル: トイレ追加 -->
+        <div id="addToiletModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>トイレ情報を追加</h2>
+                <form id="toiletForm">
+                    <div class="form-group">
+                        <label for="toiletName">名前:</label>
+                        <input type="text" id="toiletName" name="toiletName" required placeholder="例: コンビニのトイレ">
+                    </div>
+                    <div class="form-group">
+                        <label for="toiletType">種類:</label>
+                        <select id="toiletType" name="toiletType" required>
+                            <option value="convenience">コンビニ</option>
+                            <option value="park">公園</option>
+                            <option value="station">駅</option>
+                            <option value="restaurant">レストラン・カフェ</option>
+                            <option value="gas">ガソリンスタンド</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="toiletNotes">備考:</label>
+                        <textarea id="toiletNotes" name="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="toiletFree" name="toiletFree"> 無料
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="toiletWheelchair" name="toiletWheelchair"> ♿ 車椅子対応
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">追加</button>
+                        <button type="button" class="btn-secondary" id="cancelBtn">キャンセル</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
-
-    <script>
-        let map;
-        let markers = [];
-        let currentLocation = null;
-        
-        // 初期トイレデータ
-        const toilets = [
-            { name: "東京駅 丸の内南口", lat: 35.6797, lng: 139.7677 },
-            { name: "渋谷駅 ハチ公口", lat: 35.6590, lng: 139.7005 },
-            { name: "新宿駅 南口", lat: 35.6896, lng: 139.7006 },
-            { name: "雷門前", lat: 35.7105, lng: 139.7927 },
-            { name: "上野公園", lat: 35.7150, lng: 139.7730 }
-        ];
-        
-        function initMap() {
-            try {
-                console.log('地図初期化開始');
-                
-                // 地図を初期化
-                map = new google.maps.Map(document.getElementById('map'), {
-                    zoom: 13,
-                    center: { lat: 35.6762, lng: 139.6503 }
-                });
-                
-                // トイレマーカーを追加
-                toilets.forEach(toilet => {
-                    const marker = new google.maps.Marker({
-                        position: { lat: toilet.lat, lng: toilet.lng },
-                        map: map,
-                        title: toilet.name,
-                        icon: {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            scale: 15,
-                            fillColor: '#4CAF50',
-                            fillOpacity: 0.8,
-                            strokeColor: 'white',
-                            strokeWeight: 2
-                        }
-                    });
-                    
-                    const infoWindow = new google.maps.InfoWindow({
-                        content: '<div><h3>' + toilet.name + '</h3><p>公衆トイレ</p></div>'
-                    });
-                    
-                    marker.addListener('click', function() {
-                        infoWindow.open(map, marker);
-                    });
-                    
-                    markers.push(marker);
-                });
-                
-                // 現在地を取得
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        currentLocation = {
-                            lat: position.coords.latitude,
-                            lng: position.coords.longitude
-                        };
-                        
-                        new google.maps.Marker({
-                            position: currentLocation,
-                            map: map,
-                            title: '現在地',
-                            icon: {
-                                path: google.maps.SymbolPath.CIRCLE,
-                                scale: 10,
-                                fillColor: '#2196F3',
-                                fillOpacity: 0.8,
-                                strokeColor: 'white',
-                                strokeWeight: 2
-                            }
-                        });
-                        
-                        map.setCenter(currentLocation);
-                    });
-                }
-                
-                console.log('地図初期化完了');
-            } catch (error) {
-                console.error('地図初期化エラー:', error);
-                showError('地図の初期化に失敗しました: ' + error.message);
-            }
-        }
-        
-        function addToilet() {
-            if (!map) {
-                alert('地図が初期化されていません');
-                return;
-            }
-            
-            alert('地図上をクリックしてトイレの位置を指定してください');
-            
-            google.maps.event.addListenerOnce(map, 'click', function(event) {
-                const name = prompt('トイレの名前を入力してください:');
-                if (name) {
-                    const marker = new google.maps.Marker({
-                        position: event.latLng,
-                        map: map,
-                        title: name,
-                        icon: {
-                            path: google.maps.SymbolPath.CIRCLE,
-                            scale: 15,
-                            fillColor: '#FF9800',
-                            fillOpacity: 0.8,
-                            strokeColor: 'white',
-                            strokeWeight: 2
-                        }
-                    });
-                    
-                    const infoWindow = new google.maps.InfoWindow({
-                        content: '<div><h3>' + name + '</h3><p>ユーザー追加</p></div>'
-                    });
-                    
-                    marker.addListener('click', function() {
-                        infoWindow.open(map, marker);
-                    });
-                    
-                    markers.push(marker);
-                    alert('トイレを追加しました！');
-                }
-            });
-        }
-        
-        function getCurrentLocation() {
-            if (currentLocation) {
-                map.setCenter(currentLocation);
-                map.setZoom(15);
-            } else {
-                alert('現在地を取得中です...');
-            }
-        }
-        
-        function searchNearby() {
-            alert('周辺のコンビニを検索中... (この機能は開発中です)');
-        }
-        
-        function emergencyMode() {
-            if (!currentLocation) {
-                alert('現在地が取得できません！');
-                return;
-            }
-            
-            let nearestToilet = null;
-            let minDistance = Infinity;
-            
-            toilets.forEach(toilet => {
-                const distance = getDistance(
-                    currentLocation.lat, currentLocation.lng,
-                    toilet.lat, toilet.lng
-                );
-                
-                if (distance < minDistance) {
-                    minDistance = distance;
-                    nearestToilet = toilet;
-                }
-            });
-            
-            if (nearestToilet) {
-                map.setCenter({ lat: nearestToilet.lat, lng: nearestToilet.lng });
-                map.setZoom(16);
-                alert('最寄りトイレ: ' + nearestToilet.name + '\n距離: 約' + Math.round(minDistance * 1000) + 'm');
-            }
-        }
-        
-        function getDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371;
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return R * c;
-        }
-        
-        function showError(message) {
-            const errorDiv = document.getElementById('error-message');
-            if (errorDiv) {
-                errorDiv.textContent = message;
-                errorDiv.style.display = 'block';
-            }
-        }
-        
-        // グローバルに公開
-        window.initMap = initMap;
-    </script>
+    
+    <footer>
+        <p>※当サイトはAmazonアソシエイトプログラムに参加しています</p>
+    </footer>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- Firebase設定 -->
+    <script src="firebase-config.js"></script>
+    
+    <!-- メインアプリケーション -->
+    <script src="app.js"></script>
     
     <!-- Google Maps API -->
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&callback=initMap"></script>
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap">
+    </script>
 </body>
 </html>
