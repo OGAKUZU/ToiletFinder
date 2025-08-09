@@ -471,6 +471,40 @@
     <script src="app.js"></script>
     <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap"
+            /* アフィリエイトリンク */
+.affiliate-link {
+    color: white;
+    margin: 0 10px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.affiliate-link:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.product-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s;
+}
+
+.product-link:hover {
+    transform: translateX(5px);
+}
+
+/* フッター */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    background: white;
+    margin-top: 40px;
+}
         onerror="console.error('Google Maps APIの読み込みに失敗しました:', this.src)">
     </script>
 </body>
