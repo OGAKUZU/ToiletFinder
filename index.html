@@ -3,82 +3,269 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>トイレファインダー - テスト版</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: Arial, sans-serif; }
-        header { background: #4CAF50; color: white; padding: 1rem; text-align: center; }
-        #map { width: 100%; height: 80vh; }
-        .controls { padding: 10px; text-align: center; }
-        button { margin: 5px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
-    </style>
+    <meta name="description" content="自転車でも安心！みんなでトイレ情報を共有できる地図アプリ">
+    <title>トイレファインダー - 自転車でも安心</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🚻</text></svg>">
 </head>
 <body>
     <header>
-        <h1>🚻 トイレファインダー（テスト版）</h1>
+        <h1>🚻 トイレファインダー</h1>
+        <p>自転車での遠出も安心！みんなでトイレ情報を共有しよう</p>
     </header>
-    <div class="controls">
-        <button onclick="addMarker()">📍 トイレを追加</button>
-        <button onclick="goToCurrentLocation()">📍 現在地へ</button>
-    </div>
-    <div id="map"></div>
-
+    
+    <main>
+        <!-- Amazonアフィリエイト -->
+        <div class="ad-banner">
+            <div class="ad-content">
+                <p>🚴‍♂️ サイクリングの必需品</p>
+                <div style="margin-top: 10px;">
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin: 0 5px;">
+                        携帯トイレ
+                    </a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin: 0 5px;">
+                        サドルバッグ
+                    </a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin: 0 5px;">
+                        除菌グッズ
+                    </a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
+            <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
+            <button id="clearDirectionsBtn" class="btn-clear" style="display:none;">🗺️ 道順を消去</button>
+            <button id="importCSVBtn" class="btn-secondary">📂 CSVインポート</button>
+            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+            <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
+            <button id="emergencyBtn" class="emergency-btn">🚨 緊急！発射前に押すべし！</button>
+        </div>
+        
+        <div class="filter-buttons" style="margin: 10px 0;">
+            <button onclick="if(toiletFinder) toiletFinder.toggleFilter('showFree')" class="filter-btn">
+                🆓 無料のみ
+            </button>
+            <button onclick="if(toiletFinder) toiletFinder.toggleFilter('showWheelchair')" class="filter-btn">
+                ♿ バリアフリー
+            </button>
+        </div>
+        
+        <div class="main-content">
+            <div id="map" class="map-container"></div>
+            <div class="sidebar">
+                <div class="ad-sidebar">
+                    <h4>おすすめ商品</h4>
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="text-decoration: none; color: inherit;">
+                            <p>🚽 携帯トイレ 非常用</p>
+                            <small>緊急時に便利！コンパクトで持ち運び簡単</small>
+                        </a>
+                    </div>
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="text-decoration: none; color: inherit;">
+                            <p>🚴 サイクリング用サドルバッグ</p>
+                            <small>携帯トイレも収納可能な大容量タイプ</small>
+                        </a>
+                    </div>
+                    <div class="ad-item">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="text-decoration: none; color: inherit;">
+                            <p>💧 携帯用除菌スプレー</p>
+                            <small>公衆トイレ利用時の必需品</small>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="stats-panel">
+                    <h4>📊 トイレ統計</h4>
+                    <div id="toiletStats">
+                        <p>総トイレ数: <span id="totalCount">0</span></p>
+                        <p>無料トイレ: <span id="freeCount">0</span></p>
+                        <p>バリアフリー: <span id="wheelchairCount">0</span></p>
+                    </div>
+                </div>
+                
+                <div id="directionsPanel" class="directions-panel" style="display:none;">
+                    <h4>📍 道順</h4>
+                    <div id="directionsText"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- モーダル -->
+        <div id="csvImportModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+                <h2>CSVデータインポート</h2>
+                <div id="csvPreview">
+                    <p>CSVファイルを選択してください</p>
+                    <div class="csv-instructions">
+                        <h4>対応形式：</h4>
+                        <ul>
+                            <li>自治体のオープンデータ（公衆トイレ一覧）</li>
+                            <li>最低限必要な列: 名称, 緯度, 経度</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button id="importBtn" class="btn-primary" style="display:none;">インポート</button>
+                    <button class="btn-secondary" onclick="closeCSVModal()">キャンセル</button>
+                </div>
+            </div>
+        </div>
+        
+        <div id="addToiletModal" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>トイレ情報を追加</h2>
+                <form id="toiletForm">
+                    <div class="form-group">
+                        <label for="toiletName">名前:</label>
+                        <input type="text" id="toiletName" name="toiletName" required placeholder="例: コンビニのトイレ">
+                    </div>
+                    <div class="form-group">
+                        <label for="toiletType">種類:</label>
+                        <select id="toiletType" name="toiletType" required>
+                            <option value="convenience">コンビニ</option>
+                            <option value="park">公園</option>
+                            <option value="station">駅</option>
+                            <option value="restaurant">レストラン・カフェ</option>
+                            <option value="gas">ガソリンスタンド</option>
+                            <option value="other">その他</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="toiletNotes">備考:</label>
+                        <textarea id="toiletNotes" name="toiletNotes" placeholder="営業時間、利用条件など"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="toiletFree" name="toiletFree"> 無料
+                        </label>
+                    </div>
+                    <div class="form-group">
+                        <label>
+                            <input type="checkbox" id="toiletWheelchair" name="toiletWheelchair"> ♿ 車椅子対応
+                        </label>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn-primary">追加</button>
+                        <button type="button" class="btn-secondary" id="cancelBtn">キャンセル</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+    
+    <footer style="text-align: center; padding: 20px; color: #666; margin-top: 40px;">
+        <p>※当サイトはAmazonアソシエイトプログラムに参加しています</p>
+    </footer>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <!-- Firebase初期化 -->
     <script>
-        let map;
-        let currentLocation = { lat: 35.6762, lng: 139.6503 };
+        const firebaseConfig = {
+            apiKey: "AIzaSyCSYSu-BS7zffRl0umu1YwXpW2znrBA7jM",
+            authDomain: "toiletfinder-8bd3a.firebaseapp.com",
+            databaseURL: "https://toiletfinder-8bd3a-default-rtdb.firebaseio.com",
+            projectId: "toiletfinder-8bd3a",
+            storageBucket: "toiletfinder-8bd3a.firebasestorage.app",
+            messagingSenderId: "738709661269",
+            appId: "1:738709661269:web:baaf76b8d2b357952b16dc"
+        };
         
-        function initMap() {
-            console.log('地図初期化開始');
-            
-            // 地図を作成
-            map = new google.maps.Map(document.getElementById('map'), {
-                zoom: 13,
-                center: currentLocation
-            });
-            
-            // 初期マーカーを追加
-            new google.maps.Marker({
-                position: { lat: 35.6797, lng: 139.7677 },
-                map: map,
-                title: '東京駅'
-            });
-            
-            console.log('地図初期化完了');
+        firebase.initializeApp(firebaseConfig);
+        window.database = firebase.database();
+        console.log('Firebase初期化完了');
+        
+        // 初期データ
+        window.INITIAL_TOILET_DATA = [
+            {
+                id: "tokyo-station-1",
+                name: "東京駅 丸の内南口 公衆トイレ",
+                type: "station",
+                lat: 35.6797,
+                lng: 139.7677,
+                free: true,
+                wheelchair: true,
+                notes: "改札外、きれいで広い",
+                isPreset: true
+            },
+            {
+                id: "shibuya-hachiko",
+                name: "渋谷駅 ハチ公口 公衆トイレ",
+                type: "station",
+                lat: 35.6590,
+                lng: 139.7005,
+                free: true,
+                wheelchair: true,
+                notes: "ハチ公像近く",
+                isPreset: true
+            },
+            {
+                id: "shinjuku-south",
+                name: "新宿駅 南口 公衆トイレ",
+                type: "station",
+                lat: 35.6896,
+                lng: 139.7006,
+                free: true,
+                wheelchair: true,
+                notes: "駅構内",
+                isPreset: true
+            },
+            {
+                id: "asakusa-kaminari",
+                name: "雷門前 公衆トイレ",
+                type: "park",
+                lat: 35.7105,
+                lng: 139.7927,
+                free: true,
+                wheelchair: true,
+                notes: "観光客多い、混雑注意",
+                isPreset: true
+            },
+            {
+                id: "ueno-park",
+                name: "上野公園 噴水前トイレ",
+                type: "park",
+                lat: 35.7150,
+                lng: 139.7730,
+                free: true,
+                wheelchair: true,
+                notes: "きれいに改装済み",
+                isPreset: true
+            }
+        ];
+        
+        // CSV関連の関数
+        function closeCSVModal() {
+            document.getElementById('csvImportModal').style.display = 'none';
+            document.getElementById('csvFile').value = '';
         }
         
-        function addMarker() {
-            alert('地図をクリックしてください');
-            google.maps.event.addListenerOnce(map, 'click', function(e) {
-                new google.maps.Marker({
-                    position: e.latLng,
-                    map: map,
-                    title: '新しいトイレ'
-                });
-            });
-        }
-        
-        function goToCurrentLocation() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(function(position) {
-                    const pos = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    map.setCenter(pos);
-                    new google.maps.Marker({
-                        position: pos,
-                        map: map,
-                        title: '現在地'
-                    });
-                });
+        window.updateStats = function() {
+            if (window.toiletFinder) {
+                const total = toiletFinder.toilets.length;
+                const free = toiletFinder.toilets.filter(t => t.free).length;
+                const wheelchair = toiletFinder.toilets.filter(t => t.wheelchair).length;
+                
+                document.getElementById('totalCount').textContent = total;
+                document.getElementById('freeCount').textContent = free;
+                document.getElementById('wheelchairCount').textContent = wheelchair;
             }
         }
-        
-        window.initMap = initMap;
     </script>
     
-    <script async defer
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&callback=initMap">
+    <!-- アプリケーション -->
+    <script src="app.js"></script>
+    
+    <!-- Google Maps API -->
+    <script async defer 
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap">
     </script>
 </body>
 </html>
