@@ -509,3 +509,37 @@ footer {
     </script>
 </body>
 </html>
+/* アフィリエイトリンク */
+.affiliate-link {
+    color: white;
+    margin: 0 10px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 5px;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.affiliate-link:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.product-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: transform 0.3s;
+}
+
+.product-link:hover {
+    transform: translateX(5px);
+}
+
+/* フッター */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    background: white;
+    margin-top: 40px;
+}
