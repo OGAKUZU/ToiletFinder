@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="自転車でも安心！みんなでトイレ情報を共有できる地図アプリ">
     <title>トイレファインダー - 自転車でも安心</title>
     <link rel="stylesheet" href="styles.css">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🚻</text></svg>">
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1636079219527574"
+     crossorigin="anonymous"></script>
 </head>
 <body>
     <header>
@@ -15,20 +15,16 @@
     </header>
     
     <main>
-        <!-- Amazonアフィリエイト -->
         <div class="ad-banner">
             <div class="ad-content">
                 <p>🚴‍♂️ サイクリングの必需品</p>
                 <div style="margin-top: 10px;">
-                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin: 0 5px;">
-                        携帯トイレ
-                    </a>
-                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin: 0 5px;">
-                        サドルバッグ
-                    </a>
-                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="color: white; text-decoration: none; padding: 5px 10px; background: rgba(255,255,255,0.2); border-radius: 5px; margin: 0 5px;">
-                        除菌グッズ
-                    </a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
+                       style="color: white; margin: 0 10px;">携帯トイレ</a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                       style="color: white; margin: 0 10px;">サドルバッグ</a>
+                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                       style="color: white; margin: 0 10px;">除菌グッズ</a>
                 </div>
             </div>
         </div>
@@ -37,10 +33,15 @@
             <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
             <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
             <button id="clearDirectionsBtn" class="btn-clear" style="display:none;">🗺️ 道順を消去</button>
-            <button id="importCSVBtn" class="btn-secondary">📂 CSVインポート</button>
+            
+            <button id="importCSVBtn" class="btn-secondary" onclick="document.getElementById('csvFile').click()">
+                📂 CSVインポート
+            </button>
             <input type="file" id="csvFile" accept=".csv" style="display: none;">
+            
             <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
-            <button id="emergencyBtn" class="emergency-btn">🚨 緊急！発射前に押すべし！</button>
+            
+            <button id="emergencyBtn" class="emergency-btn" onclick="if(toiletFinder) toiletFinder.emergencyMode()">🚨 緊急！発射前に押すべし！</button>
         </div>
         
         <div class="filter-buttons" style="margin: 10px 0;">
@@ -57,20 +58,26 @@
             <div class="sidebar">
                 <div class="ad-sidebar">
                     <h4>おすすめ商品</h4>
+                    
                     <div class="ad-item">
-                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="text-decoration: none; color: inherit;">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
+                           style="text-decoration: none; color: inherit;">
                             <p>🚽 携帯トイレ 非常用</p>
                             <small>緊急時に便利！コンパクトで持ち運び簡単</small>
                         </a>
                     </div>
+                    
                     <div class="ad-item">
-                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="text-decoration: none; color: inherit;">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                           style="text-decoration: none; color: inherit;">
                             <p>🚴 サイクリング用サドルバッグ</p>
                             <small>携帯トイレも収納可能な大容量タイプ</small>
                         </a>
                     </div>
+                    
                     <div class="ad-item">
-                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" style="text-decoration: none; color: inherit;">
+                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
+                           style="text-decoration: none; color: inherit;">
                             <p>💧 携帯用除菌スプレー</p>
                             <small>公衆トイレ利用時の必需品</small>
                         </a>
@@ -93,10 +100,10 @@
             </div>
         </div>
         
-        <!-- モーダル -->
+        <!-- CSVインポートモーダル -->
         <div id="csvImportModal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="this.parentElement.parentElement.style.display='none'">&times;</span>
+                <span class="close" onclick="closeCSVModal()">&times;</span>
                 <h2>CSVデータインポート</h2>
                 <div id="csvPreview">
                     <p>CSVファイルを選択してください</p>
@@ -105,6 +112,7 @@
                         <ul>
                             <li>自治体のオープンデータ（公衆トイレ一覧）</li>
                             <li>最低限必要な列: 名称, 緯度, 経度</li>
+                            <li>オプション: 住所, 多目的トイレ, 営業時間など</li>
                         </ul>
                     </div>
                 </div>
@@ -158,7 +166,7 @@
         </div>
     </main>
     
-    <footer style="text-align: center; padding: 20px; color: #666; margin-top: 40px;">
+    <footer style="text-align: center; padding: 20px; color: #666;">
         <p>※当サイトはAmazonアソシエイトプログラムに参加しています</p>
     </footer>
     
@@ -166,8 +174,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
-    <!-- Firebase初期化 -->
     <script>
+        // Firebaseの設定
         const firebaseConfig = {
             apiKey: "AIzaSyCSYSu-BS7zffRl0umu1YwXpW2znrBA7jM",
             authDomain: "toiletfinder-8bd3a.firebaseapp.com",
@@ -179,10 +187,10 @@
         };
         
         firebase.initializeApp(firebaseConfig);
-        window.database = firebase.database();
+        const database = firebase.database();
         console.log('Firebase初期化完了');
         
-        // 初期データ
+        // 初期トイレデータをグローバルに定義
         window.INITIAL_TOILET_DATA = [
             {
                 id: "tokyo-station-1",
@@ -241,12 +249,177 @@
             }
         ];
         
-        // CSV関連の関数
+        // デバッグ用
+        console.log('ページ読み込み完了');
+        
+        // CSVインポート機能
+        document.getElementById('csvFile').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            console.log('CSVファイル選択:', file.name);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                console.log('CSV読み込み完了、長さ:', csv.length);
+                parseCSV(csv);
+            };
+            reader.onerror = function(e) {
+                console.error('ファイル読み込みエラー:', e);
+                alert('ファイルの読み込みに失敗しました');
+            };
+            reader.readAsText(file, 'UTF-8');
+        });
+        
+        function parseCSV(csv) {
+            console.log('CSV解析開始');
+            
+            // BOMを除去
+            if (csv.charCodeAt(0) === 0xFEFF) {
+                csv = csv.substr(1);
+            }
+            
+            // 改行で分割（Windows/Mac/Linux対応）
+            const lines = csv.split(/\r\n|\r|\n/).filter(line => line.trim() !== '');
+            console.log('行数:', lines.length);
+            
+            if (lines.length < 2) {
+                alert('CSVファイルにデータがありません');
+                return;
+            }
+            
+            // ヘッダーを取得
+            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
+            console.log('CSVヘッダー:', headers);
+            
+            // CSVプレビューモーダルを表示
+            document.getElementById('csvImportModal').style.display = 'block';
+            
+            const preview = document.getElementById('csvPreview');
+            preview.innerHTML = `
+                <h4>インポートプレビュー</h4>
+                <p>検出された列: ${headers.join(', ')}</p>
+                <p>データ行数: ${lines.length - 1}</p>
+            `;
+            
+            document.getElementById('importBtn').style.display = 'block';
+            document.getElementById('importBtn').onclick = function() {
+                importToilets(lines, headers);
+            };
+        }
+        
+        function importToilets(lines, headers) {
+            console.log('インポート開始');
+            let imported = 0;
+            let failed = 0;
+            
+            // ヘッダーのインデックスを取得
+            const nameIndex = headers.findIndex(h => h === '名称' || h === 'name' || h === '施設名');
+            const latIndex = headers.findIndex(h => h === '緯度' || h === 'lat' || h === 'latitude');
+            const lngIndex = headers.findIndex(h => h === '経度' || h === 'lng' || h === 'longitude' || h === 'lon');
+            const addressIndex = headers.findIndex(h => h === '所在地' || h === '住所' || h === 'address');
+            const typeIndex = headers.findIndex(h => h === '分類' || h === 'type' || h === '種類');
+            
+            console.log('カラムインデックス:', { nameIndex, latIndex, lngIndex, addressIndex, typeIndex });
+            
+            if (nameIndex === -1 || latIndex === -1 || lngIndex === -1) {
+                alert('必要な列（名称、緯度、経度）が見つかりません\n検出されたヘッダー: ' + headers.join(', '));
+                return;
+            }
+            
+            // データ行を処理
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                
+                // CSVの行を解析（カンマ区切り、ダブルクォート対応）
+                const values = [];
+                let current = '';
+                let inQuotes = false;
+                
+                for (let j = 0; j < line.length; j++) {
+                    const char = line[j];
+                    if (char === '"') {
+                        inQuotes = !inQuotes;
+                    } else if (char === ',' && !inQuotes) {
+                        values.push(current.trim());
+                        current = '';
+                    } else {
+                        current += char;
+                    }
+                }
+                values.push(current.trim());
+                
+                console.log(`行${i}:`, values);
+                
+                // 必要なデータを取得
+                const name = values[nameIndex] || '';
+                const latStr = values[latIndex] || '';
+                const lngStr = values[lngIndex] || '';
+                
+                // 数値に変換
+                const lat = parseFloat(latStr);
+                const lng = parseFloat(lngStr);
+                
+                console.log(`データ: name="${name}", lat=${lat}, lng=${lng}`);
+                
+                if (!name || isNaN(lat) || isNaN(lng)) {
+                    console.log('スキップ（データ不正）');
+                    failed++;
+                    continue;
+                }
+                
+                const toilet = {
+                    id: 'csv-' + Date.now() + '-' + i,
+                    name: name,
+                    lat: lat,
+                    lng: lng,
+                    type: 'other',
+                    free: true,
+                    wheelchair: false,
+                    isPreset: true,
+                    addedAt: new Date().toISOString()
+                };
+                
+                // オプション項目
+                if (addressIndex !== -1 && values[addressIndex]) {
+                    toilet.notes = values[addressIndex];
+                }
+                
+                // 分類からタイプを推測
+                if (typeIndex !== -1 && values[typeIndex]) {
+                    const typeStr = values[typeIndex].toLowerCase();
+                    if (typeStr.includes('公園')) {
+                        toilet.type = 'park';
+                    } else if (typeStr.includes('駅')) {
+                        toilet.type = 'station';
+                    }
+                }
+                
+                console.log('追加するトイレ:', toilet);
+                
+                if (window.toiletFinder) {
+                    toiletFinder.addToilet(toilet);
+                    imported++;
+                } else {
+                    console.error('toiletFinderが初期化されていません');
+                    alert('地図の初期化が完了していません。少し待ってから再試行してください。');
+                    return;
+                }
+            }
+            
+            alert(`${imported}件のトイレ情報をインポートしました！\n（${failed}件スキップ）`);
+            closeCSVModal();
+            updateStats();
+        }
+        
         function closeCSVModal() {
             document.getElementById('csvImportModal').style.display = 'none';
             document.getElementById('csvFile').value = '';
         }
         
+        // 統計情報の更新（グローバル関数として定義）
         window.updateStats = function() {
             if (window.toiletFinder) {
                 const total = toiletFinder.toilets.length;
@@ -258,14 +431,39 @@
                 document.getElementById('wheelchairCount').textContent = wheelchair;
             }
         }
+        
+        // 初期化完了時に統計を更新
+        setTimeout(() => {
+            if (window.updateStats) {
+                window.updateStats();
+            }
+        }, 1000);
+        
+        // 周辺のコンビニ検索（Google Places API使用）
+        document.getElementById('searchNearbyBtn').addEventListener('click', function() {
+            console.log('コンビニ検索ボタンクリック');
+            
+            // toiletFinderが初期化されるまで待つ
+            if (!window.toiletFinder) {
+                alert('地図の初期化中です。少々お待ちください。');
+                return;
+            }
+            
+            // searchNearbyStores関数を呼び出す
+            toiletFinder.searchNearbyStores();
+        });
+        
+        // Maps API読み込みエラーハンドリング
+        window.gm_authFailure = function() {
+            console.error('Google Maps APIの認証に失敗しました。APIキーを確認してください。');
+            alert('地図の読み込みに失敗しました。APIキーの設定を確認してください。');
+        };
     </script>
     
-    <!-- アプリケーション -->
     <script src="app.js"></script>
-    
-    <!-- Google Maps API -->
     <script async defer 
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap">
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap"
+        onerror="console.error('Google Maps APIの読み込みに失敗しました:', this.src)">
     </script>
 </body>
 </html>
