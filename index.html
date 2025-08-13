@@ -15,17 +15,21 @@
     </header>
     
     <main>
-        <div class="ad-banner">
+        <!-- 修正されたアフィリエイトバナー -->
+        <div class="ad-banner" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
             <div class="ad-content">
-                <p>🚴‍♂️ サイクリングの必需品</p>
-                <div style="margin-top: 10px;">
-                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
-                       style="color: white; margin: 0 10px;">携帯トイレ</a>
-                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
-                       style="color: white; margin: 0 10px;">サドルバッグ</a>
-                    <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
-                       style="color: white; margin: 0 10px;">除菌グッズ</a>
-                </div>
+                <p style="font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
+                    💝 こちらのリンクからAmazonで買い物をしてくれたらムセビ泣きます(TT)
+                </p>
+                <p style="color: #fff; margin-bottom: 15px;">
+                    経費の補填としてどうかご慈悲を！
+                </p>
+                <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
+                   style="display: inline-block; background: #fff; color: #764ba2; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.3s;"
+                   onmouseover="this.style.transform='scale(1.1)'" 
+                   onmouseout="this.style.transform='scale(1)'">
+                    🛒 Amazonでお買い物
+                </a>
             </div>
         </div>
         
@@ -33,15 +37,11 @@
             <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
             <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
             <button id="clearDirectionsBtn" class="btn-clear" style="display:none;">🗺️ 道順を消去</button>
-            
             <button id="importCSVBtn" class="btn-secondary" onclick="document.getElementById('csvFile').click()">
                 📂 CSVインポート
             </button>
             <input type="file" id="csvFile" accept=".csv" style="display: none;">
-            
             <button id="searchNearbyBtn" class="btn-secondary">🔍 周辺のコンビニ検索</button>
-            
-            <button id="emergencyBtn" class="emergency-btn" onclick="if(toiletFinder) toiletFinder.emergencyMode()">🚨 緊急！発射前に押すべし！</button>
         </div>
         
         <div class="filter-buttons" style="margin: 10px 0;">
@@ -56,30 +56,22 @@
         <div class="main-content">
             <div id="map" class="map-container"></div>
             <div class="sidebar">
-                <div class="ad-sidebar">
-                    <h4>おすすめ商品</h4>
-                    
-                    <div class="ad-item">
+                <!-- 修正されたサイドバー広告 -->
+                <div class="ad-sidebar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h4 style="color: #fff; text-align: center; margin-bottom: 15px; font-size: 20px;">
+                        🎁 応援お願いします！
+                    </h4>
+                    <p style="color: #fff; text-align: center; margin-bottom: 15px; font-size: 14px; line-height: 1.6;">
+                        こちらのリンクからAmazonで買い物をしてくれたら<br>
+                        <span style="font-size: 18px; font-weight: bold;">ムセビ泣きます(TT)</span><br>
+                        経費の補填としてどうかご慈悲を！
+                    </p>
+                    <div style="text-align: center;">
                         <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
-                           style="text-decoration: none; color: inherit;">
-                            <p>🚽 携帯トイレ 非常用</p>
-                            <small>緊急時に便利！コンパクトで持ち運び簡単</small>
-                        </a>
-                    </div>
-                    
-                    <div class="ad-item">
-                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
-                           style="text-decoration: none; color: inherit;">
-                            <p>🚴 サイクリング用サドルバッグ</p>
-                            <small>携帯トイレも収納可能な大容量タイプ</small>
-                        </a>
-                    </div>
-                    
-                    <div class="ad-item">
-                        <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow"
-                           style="text-decoration: none; color: inherit;">
-                            <p>💧 携帯用除菌スプレー</p>
-                            <small>公衆トイレ利用時の必需品</small>
+                           style="display: inline-block; background: #fff; color: #f5576c; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-weight: bold; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.2);"
+                           onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 20px rgba(0,0,0,0.3)'" 
+                           onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.2)'">
+                            🛍️ Amazonへ
                         </a>
                     </div>
                 </div>
@@ -125,7 +117,7 @@
         
         <div id="addToiletModal" class="modal">
             <div class="modal-content">
-                <span class="close">&times;</span>
+                <span class="close" onclick="document.getElementById('addToiletModal').style.display='none'">&times;</span>
                 <h2>トイレ情報を追加</h2>
                 <form id="toiletForm">
                     <div class="form-group">
@@ -159,7 +151,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">追加</button>
-                        <button type="button" class="btn-secondary" id="cancelBtn">キャンセル</button>
+                        <button type="button" class="btn-secondary" onclick="document.getElementById('addToiletModal').style.display='none'">キャンセル</button>
                     </div>
                 </form>
             </div>
@@ -394,6 +386,36 @@
         window.gm_authFailure = function() {
             console.error('Google Maps APIの認証に失敗しました。');
             alert('地図の読み込みに失敗しました。');
+        };
+        
+        // トイレフォームの送信処理を追加
+        document.getElementById('toiletForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
+                alert('地図上の位置を選択してください');
+                return;
+            }
+            
+            const toilet = {
+                id: Date.now().toString(),
+                name: document.getElementById('toiletName').value,
+                lat: window.toiletFinder.clickedPosition.lat,
+                lng: window.toiletFinder.clickedPosition.lng,
+                type: document.getElementById('toiletType').value,
+                notes: document.getElementById('toiletNotes').value,
+                free: document.getElementById('toiletFree').checked,
+                wheelchair: document.getElementById('toiletWheelchair').checked,
+                addedAt: new Date().toISOString()
+            };
+            
+            window.toiletFinder.addToilet(toilet);
+            
+            // モーダルを閉じる
+            document.getElementById('addToiletModal').style.display = 'none';
+            this.reset();
+            
+            alert('トイレを追加しました！');
         };
     </script>
     
