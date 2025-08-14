@@ -7,6 +7,19 @@
     <link rel="stylesheet" href="styles.css">
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1636079219527574"
      crossorigin="anonymous"></script>
+    <style>
+        /* モーダルを画面中央に配置 */
+        #addToiletModal .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+    </style>
 </head>
 <body>
     <header>
@@ -15,24 +28,6 @@
     </header>
     
     <main>
-        <!-- 修正されたアフィリエイトバナー -->
-        <div class="ad-banner" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-            <div class="ad-content">
-                <p style="font-size: 18px; font-weight: bold; color: #fff; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">
-                    💝 こちらのリンクからAmazonで買い物をしてくれたらムセビ泣きます(TT)
-                </p>
-                <p style="color: #fff; margin-bottom: 15px;">
-                    経費の補填としてどうかご慈悲を！
-                </p>
-                <a href="https://amzn.to/3UTldNO" target="_blank" rel="nofollow" 
-                   style="display: inline-block; background: #fff; color: #764ba2; padding: 12px 30px; border-radius: 30px; text-decoration: none; font-weight: bold; box-shadow: 0 4px 15px rgba(0,0,0,0.2); transition: transform 0.3s;"
-                   onmouseover="this.style.transform='scale(1.1)'" 
-                   onmouseout="this.style.transform='scale(1)'">
-                    🛒 Amazonでお買い物
-                </a>
-            </div>
-        </div>
-        
         <div class="controls">
             <button id="addToiletBtn" class="btn-primary">📍 トイレを追加</button>
             <button id="myLocationBtn" class="btn-secondary">📍 現在地</button>
@@ -56,7 +51,7 @@
         <div class="main-content">
             <div id="map" class="map-container"></div>
             <div class="sidebar">
-                <!-- 修正されたサイドバー広告 -->
+                <!-- サイドバー広告のみ残す -->
                 <div class="ad-sidebar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                     <h4 style="color: #fff; text-align: center; margin-bottom: 15px; font-size: 20px;">
                         🎁 応援お願いします！
@@ -115,10 +110,12 @@
             </div>
         </div>
         
+        <!-- トイレ追加モーダル（画面中央に配置） -->
         <div id="addToiletModal" class="modal">
             <div class="modal-content">
                 <span class="close" onclick="document.getElementById('addToiletModal').style.display='none'">&times;</span>
                 <h2>トイレ情報を追加</h2>
+                <p style="color: #666; margin-bottom: 15px;">地図上をクリックして位置を選択してください</p>
                 <form id="toiletForm">
                     <div class="form-group">
                         <label for="toiletName">名前:</label>
@@ -141,7 +138,7 @@
                     </div>
                     <div class="form-group">
                         <label>
-                            <input type="checkbox" id="toiletFree" name="toiletFree"> 無料
+                            <input type="checkbox" id="toiletFree" name="toiletFree" checked> 無料
                         </label>
                     </div>
                     <div class="form-group">
@@ -388,7 +385,38 @@
             alert('地図の読み込みに失敗しました。');
         };
         
-        // トイレフォームの送信処理を追加
+        // トイレ追加ボタンクリック時の処理
+        document.getElementById('addToiletBtn').addEventListener('click', function() {
+            // モーダルを表示
+            document.getElementById('addToiletModal').style.display = 'block';
+            
+            // 地図クリックイベントを設定
+            if (window.toiletFinder && window.toiletFinder.map) {
+                alert('地図上をクリックしてトイレの位置を指定してください');
+                
+                // 一時的なマーカーとクリックイベントを設定
+                google.maps.event.addListenerOnce(window.toiletFinder.map, 'click', function(event) {
+                    // クリックした位置を保存
+                    window.toiletFinder.clickedPosition = {
+                        lat: event.latLng.lat(),
+                        lng: event.latLng.lng()
+                    };
+                    
+                    // 一時的なマーカーを表示
+                    if (window.tempMarker) {
+                        window.tempMarker.setMap(null);
+                    }
+                    window.tempMarker = new google.maps.Marker({
+                        position: event.latLng,
+                        map: window.toiletFinder.map,
+                        title: '新しいトイレの位置',
+                        icon: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                    });
+                });
+            }
+        });
+        
+        // トイレフォームの送信処理
         document.getElementById('toiletForm').onsubmit = function(e) {
             e.preventDefault();
             
@@ -411,9 +439,18 @@
             
             window.toiletFinder.addToilet(toilet);
             
+            // 一時マーカーを削除
+            if (window.tempMarker) {
+                window.tempMarker.setMap(null);
+                window.tempMarker = null;
+            }
+            
             // モーダルを閉じる
             document.getElementById('addToiletModal').style.display = 'none';
             this.reset();
+            
+            // clickedPositionをリセット
+            window.toiletFinder.clickedPosition = null;
             
             alert('トイレを追加しました！');
         };
