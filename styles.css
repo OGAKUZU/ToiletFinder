@@ -8,19 +8,93 @@
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1636079219527574"
      crossorigin="anonymous"></script>
     <style>
-        /* モーダルを画面中央に配置 */
-        #addToiletModal {
-            display: none; /* 初期状態は非表示 */
+        /* 地図コンテナの修正 */
+        .map-container {
+            width: 100% !important;
+            height: 500px !important;
+            min-height: 500px !important;
+            display: block !important;
+            position: relative !important;
         }
-        #addToiletModal .modal-content {
+        
+        #map {
+            width: 100% !important;
+            height: 100% !important;
+            display: block !important;
+        }
+        
+        /* モーダルの背景 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        
+        /* モーダルコンテンツを画面中央に配置 */
+        .modal-content {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
             width: 90%;
             max-width: 500px;
             max-height: 90vh;
             overflow-y: auto;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        /* フォームスタイル */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input[type="text"],
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #666;
+        }
+        
+        .close:hover {
+            color: #000;
         }
     </style>
 </head>
@@ -54,7 +128,6 @@
         <div class="main-content">
             <div id="map" class="map-container"></div>
             <div class="sidebar">
-                <!-- サイドバー広告のみ残す -->
                 <div class="ad-sidebar" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 20px; border-radius: 10px; margin-bottom: 20px;">
                     <h4 style="color: #fff; text-align: center; margin-bottom: 15px; font-size: 20px;">
                         🎁 応援お願いします！
@@ -113,10 +186,10 @@
             </div>
         </div>
         
-        <!-- トイレ追加モーダル（画面中央に配置・初期非表示） -->
+        <!-- トイレ追加モーダル -->
         <div id="addToiletModal" class="modal">
             <div class="modal-content">
-                <span class="close" onclick="document.getElementById('addToiletModal').style.display='none'; if(window.tempMarker) { window.tempMarker.setMap(null); window.tempMarker = null; }">&times;</span>
+                <span class="close" onclick="closeToiletModal()">&times;</span>
                 <h2>トイレ情報を追加</h2>
                 <p style="color: #666; margin-bottom: 15px;">地図上をクリックして位置を選択してください</p>
                 <form id="toiletForm">
@@ -151,7 +224,7 @@
                     </div>
                     <div class="form-actions">
                         <button type="submit" class="btn-primary">追加</button>
-                        <button type="button" class="btn-secondary" onclick="document.getElementById('addToiletModal').style.display='none'; if(window.tempMarker) { window.tempMarker.setMap(null); window.tempMarker = null; }">キャンセル</button>
+                        <button type="button" class="btn-secondary" onclick="closeToiletModal()">キャンセル</button>
                     </div>
                 </form>
             </div>
@@ -182,7 +255,7 @@
         const database = firebase.database();
         console.log('Firebase初期化完了');
         
-        // 初期トイレデータをグローバルに定義
+        // 初期トイレデータ
         window.INITIAL_TOILET_DATA = [
             {
                 id: "tokyo-station-1",
@@ -241,8 +314,20 @@
             }
         ];
         
-        // デバッグ用
-        console.log('ページ読み込み完了');
+        // モーダルを閉じる関数
+        function closeToiletModal() {
+            document.getElementById('addToiletModal').style.display = 'none';
+            document.getElementById('toiletForm').reset();
+            if (window.tempMarker) {
+                window.tempMarker.setMap(null);
+                window.tempMarker = null;
+            }
+        }
+        
+        function closeCSVModal() {
+            document.getElementById('csvImportModal').style.display = 'none';
+            document.getElementById('csvFile').value = '';
+        }
         
         // CSVインポート機能
         document.getElementById('csvFile').addEventListener('change', function(e) {
@@ -352,11 +437,6 @@
             updateStats();
         }
         
-        function closeCSVModal() {
-            document.getElementById('csvImportModal').style.display = 'none';
-            document.getElementById('csvFile').value = '';
-        }
-        
         window.updateStats = function() {
             if (window.toiletFinder) {
                 const total = toiletFinder.toilets.length;
@@ -383,11 +463,6 @@
             toiletFinder.searchNearbyStores();
         });
         
-        window.gm_authFailure = function() {
-            console.error('Google Maps APIの認証に失敗しました。');
-            alert('地図の読み込みに失敗しました。');
-        };
-        
         // トイレフォームの送信処理
         document.getElementById('toiletForm').onsubmit = function(e) {
             e.preventDefault();
@@ -411,18 +486,8 @@
             
             window.toiletFinder.addToilet(toilet);
             
-            // 一時マーカーを削除
-            if (window.tempMarker) {
-                window.tempMarker.setMap(null);
-                window.tempMarker = null;
-            }
-            
             // モーダルを閉じる
-            document.getElementById('addToiletModal').style.display = 'none';
-            this.reset();
-            
-            // clickedPositionをリセット
-            window.toiletFinder.clickedPosition = null;
+            closeToiletModal();
             
             alert('トイレを追加しました！');
         };
