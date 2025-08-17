@@ -515,6 +515,22 @@ document.getElementById('toiletForm').onsubmit = function(e) {
     
     // モーダルを閉じる
     closeToiletModal();
+
+    // app.jsのaddToiletメソッドをオーバーライド（必要な場合のみ）
+window.addEventListener('load', function() {
+    setTimeout(() => {
+        if (window.toiletFinder && window.toiletFinder.addToilet) {
+            const originalAddToilet = window.toiletFinder.addToilet.bind(window.toiletFinder);
+            window.toiletFinder.addToilet = function(toilet) {
+                // アラートを表示せずに元のメソッドを実行
+                const result = originalAddToilet(toilet);
+                // clickedPositionをリセット
+                this.clickedPosition = null;
+                return result;
+            };
+        }
+    }, 1000);
+});
     
     // clickedPositionをリセット（これを追加）
     window.toiletFinder.clickedPosition = null;
