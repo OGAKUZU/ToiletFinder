@@ -490,34 +490,38 @@
             toiletFinder.searchNearbyStores();
         });
         
-        // トイレフォームの送信処理
-        document.getElementById('toiletForm').onsubmit = function(e) {
-            e.preventDefault();
-            
-            if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
-                alert('地図上の位置を選択してください');
-                return;
-            }
-            
-            const toilet = {
-                id: Date.now().toString(),
-                name: document.getElementById('toiletName').value,
-                lat: window.toiletFinder.clickedPosition.lat,
-                lng: window.toiletFinder.clickedPosition.lng,
-                type: document.getElementById('toiletType').value,
-                notes: document.getElementById('toiletNotes').value,
-                free: document.getElementById('toiletFree').checked,
-                wheelchair: document.getElementById('toiletWheelchair').checked,
-                addedAt: new Date().toISOString()
-            };
-            
-            window.toiletFinder.addToilet(toilet);
-            
-            // モーダルを閉じる
-            closeToiletModal();
-            
-            alert('トイレを追加しました！');
-        };
+// トイレフォームの送信処理（修正版）
+document.getElementById('toiletForm').onsubmit = function(e) {
+    e.preventDefault();
+    
+    if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
+        alert('地図上の位置を選択してください');
+        return;
+    }
+    
+    const toilet = {
+        id: Date.now().toString(),
+        name: document.getElementById('toiletName').value,
+        lat: window.toiletFinder.clickedPosition.lat,
+        lng: window.toiletFinder.clickedPosition.lng,
+        type: document.getElementById('toiletType').value,
+        notes: document.getElementById('toiletNotes').value,
+        free: document.getElementById('toiletFree').checked,
+        wheelchair: document.getElementById('toiletWheelchair').checked,
+        addedAt: new Date().toISOString()
+    };
+    
+    window.toiletFinder.addToilet(toilet);
+    
+    // モーダルを閉じる
+    closeToiletModal();
+    
+    // clickedPositionをリセット（これを追加）
+    window.toiletFinder.clickedPosition = null;
+    
+    // 「トイレを追加しました！」のアラートのみ表示
+    alert('トイレを追加しました！');
+};
     </script>
     
     <script src="app.js"></script>
