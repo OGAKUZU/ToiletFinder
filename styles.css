@@ -316,19 +316,20 @@
     
     console.log('ページ読み込み完了');
     
-    // アラートを一時的に無効化する関数
+    // アラート管理用の変数
     let originalAlert = window.alert;
-    let alertEnabled = true;
+    let isAddingToilet = false;
     
-    function disableAlert() {
-        alertEnabled = false;
-        window.alert = function() {};
-    }
-    
-    function enableAlert() {
-        alertEnabled = true;
-        window.alert = originalAlert;
-    }
+    // alert関数をオーバーライド
+    window.alert = function(message) {
+        // トイレ追加中で、特定のメッセージの場合は無視
+        if (isAddingToilet && (message.includes('トイレ情報を追加') || message.includes('地図上の位置を選択'))) {
+            console.log('アラート抑制:', message);
+            return;
+        }
+        // それ以外は通常のアラートを表示
+        return originalAlert.call(window, message);
+    };
     
     // モーダルを閉じる関数
     function closeToiletModal() {
@@ -342,6 +343,7 @@
         if (window.toiletFinder) {
             window.toiletFinder.clickedPosition = null;
         }
+        isAddingToilet = false;
     }
     
     function closeCSVModal() {
@@ -447,10 +449,9 @@
             };
             
             if (window.toiletFinder) {
-                // アラートを無効化してから追加
-                disableAlert();
+                isAddingToilet = true;
                 toiletFinder.addToilet(toilet);
-                enableAlert();
+                isAddingToilet = false;
                 imported++;
             }
         }
@@ -491,7 +492,8 @@
         e.preventDefault();
         
         if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
-            alert('地図上の位置を選択してください');
+            // この「地図上の位置を選択してください」は表示する
+            originalAlert('地図上の位置を選択してください');
             return;
         }
         
@@ -507,20 +509,24 @@
             addedAt: new Date().toISOString()
         };
         
-        // アラートを一時的に無効化
-        disableAlert();
+        // トイレ追加中フラグを設定
+        isAddingToilet = true;
         
         // トイレを追加
         window.toiletFinder.addToilet(toilet);
         
-        // アラートを再度有効化
-        enableAlert();
+        // 少し遅延してフラグをリセット
+        setTimeout(() => {
+            isAddingToilet = false;
+        }, 100);
         
         // モーダルを閉じる
         closeToiletModal();
         
         // 成功メッセージを表示
-        alert('トイレを追加しました！');
+        setTimeout(() => {
+            alert('トイレを追加しました！');
+        }, 200);
     };
 </script>
     <script src="app.js"></script>
