@@ -23,7 +23,7 @@
             min-height: 500px !important;
             display: block !important;
             position: relative !important;
-            background: #e0e0e0; /* デバッグ用：地図が表示されない場合グレーが見える */
+            background: #e0e0e0;
         }
         
         /* サイドバー */
@@ -349,12 +349,34 @@
                 window.tempMarker.setMap(null);
                 window.tempMarker = null;
             }
+            // clickedPositionをリセット
+            if (window.toiletFinder) {
+                window.toiletFinder.clickedPosition = null;
+            }
         }
         
         function closeCSVModal() {
             document.getElementById('csvImportModal').style.display = 'none';
             document.getElementById('csvFile').value = '';
         }
+        
+        // addToiletメソッドをオーバーライド（アラート抑制）
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                if (window.toiletFinder && window.toiletFinder.addToilet) {
+                    const originalAddToilet = window.toiletFinder.addToilet.bind(window.toiletFinder);
+                    window.toiletFinder.addToilet = function(toilet) {
+                        // アラートを表示せずに元のメソッドを実行
+                        const result = originalAddToilet(toilet);
+                        // 統計を更新
+                        if (window.updateStats) {
+                            window.updateStats();
+                        }
+                        return result;
+                    };
+                }
+            }, 1500);
+        });
         
         // CSVインポート機能
         document.getElementById('csvFile').addEventListener('change', function(e) {
@@ -490,54 +512,36 @@
             toiletFinder.searchNearbyStores();
         });
         
-// トイレフォームの送信処理（修正版）
-document.getElementById('toiletForm').onsubmit = function(e) {
-    e.preventDefault();
-    
-    if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
-        alert('地図上の位置を選択してください');
-        return;
-    }
-    
-    const toilet = {
-        id: Date.now().toString(),
-        name: document.getElementById('toiletName').value,
-        lat: window.toiletFinder.clickedPosition.lat,
-        lng: window.toiletFinder.clickedPosition.lng,
-        type: document.getElementById('toiletType').value,
-        notes: document.getElementById('toiletNotes').value,
-        free: document.getElementById('toiletFree').checked,
-        wheelchair: document.getElementById('toiletWheelchair').checked,
-        addedAt: new Date().toISOString()
-    };
-    
-    window.toiletFinder.addToilet(toilet);
-    
-    // モーダルを閉じる
-    closeToiletModal();
-
-    // app.jsのaddToiletメソッドをオーバーライド（必要な場合のみ）
-window.addEventListener('load', function() {
-    setTimeout(() => {
-        if (window.toiletFinder && window.toiletFinder.addToilet) {
-            const originalAddToilet = window.toiletFinder.addToilet.bind(window.toiletFinder);
-            window.toiletFinder.addToilet = function(toilet) {
-                // アラートを表示せずに元のメソッドを実行
-                const result = originalAddToilet(toilet);
-                // clickedPositionをリセット
-                this.clickedPosition = null;
-                return result;
+        // トイレフォームの送信処理（修正版）
+        document.getElementById('toiletForm').onsubmit = function(e) {
+            e.preventDefault();
+            
+            if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
+                alert('地図上の位置を選択してください');
+                return;
+            }
+            
+            const toilet = {
+                id: Date.now().toString(),
+                name: document.getElementById('toiletName').value,
+                lat: window.toiletFinder.clickedPosition.lat,
+                lng: window.toiletFinder.clickedPosition.lng,
+                type: document.getElementById('toiletType').value,
+                notes: document.getElementById('toiletNotes').value,
+                free: document.getElementById('toiletFree').checked,
+                wheelchair: document.getElementById('toiletWheelchair').checked,
+                addedAt: new Date().toISOString()
             };
-        }
-    }, 1000);
-});
-    
-    // clickedPositionをリセット（これを追加）
-    window.toiletFinder.clickedPosition = null;
-    
-    // 「トイレを追加しました！」のアラートのみ表示
-    alert('トイレを追加しました！');
-};
+            
+            // addToiletを呼び出す（オーバーライド済みなのでアラートは出ない）
+            window.toiletFinder.addToilet(toilet);
+            
+            // モーダルを閉じる
+            closeToiletModal();
+            
+            // 成功メッセージを1回だけ表示
+            alert('トイレを追加しました！');
+        };
     </script>
     
     <script src="app.js"></script>
@@ -545,4 +549,4 @@ window.addEventListener('load', function() {
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap">
     </script>
 </body>
-</html>
+</html>  
