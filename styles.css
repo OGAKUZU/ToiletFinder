@@ -239,260 +239,290 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
-    <script>
-        // Firebaseの設定
-        const firebaseConfig = {
-            apiKey: "AIzaSyCSYSu-BS7zffRl0umu1YwXpW2znrBA7jM",
-            authDomain: "toiletfinder-8bd3a.firebaseapp.com",
-            databaseURL: "https://toiletfinder-8bd3a-default-rtdb.firebaseio.com",
-            projectId: "toiletfinder-8bd3a",
-            storageBucket: "toiletfinder-8bd3a.firebasestorage.app",
-            messagingSenderId: "738709661269",
-            appId: "1:738709661269:web:baaf76b8d2b357952b16dc"
+<script>
+    // Firebaseの設定
+    const firebaseConfig = {
+        apiKey: "AIzaSyCSYSu-BS7zffRl0umu1YwXpW2znrBA7jM",
+        authDomain: "toiletfinder-8bd3a.firebaseapp.com",
+        databaseURL: "https://toiletfinder-8bd3a-default-rtdb.firebaseio.com",
+        projectId: "toiletfinder-8bd3a",
+        storageBucket: "toiletfinder-8bd3a.firebasestorage.app",
+        messagingSenderId: "738709661269",
+        appId: "1:738709661269:web:baaf76b8d2b357952b16dc"
+    };
+    
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    console.log('Firebase初期化完了');
+    
+    // 初期トイレデータ
+    window.INITIAL_TOILET_DATA = [
+        {
+            id: "tokyo-station-1",
+            name: "東京駅 丸の内南口 公衆トイレ",
+            type: "station",
+            lat: 35.6797,
+            lng: 139.7677,
+            free: true,
+            wheelchair: true,
+            notes: "改札外、きれいで広い",
+            isPreset: true
+        },
+        {
+            id: "shibuya-hachiko",
+            name: "渋谷駅 ハチ公口 公衆トイレ",
+            type: "station",
+            lat: 35.6590,
+            lng: 139.7005,
+            free: true,
+            wheelchair: true,
+            notes: "ハチ公像近く",
+            isPreset: true
+        },
+        {
+            id: "shinjuku-south",
+            name: "新宿駅 南口 公衆トイレ",
+            type: "station",
+            lat: 35.6896,
+            lng: 139.7006,
+            free: true,
+            wheelchair: true,
+            notes: "駅構内",
+            isPreset: true
+        },
+        {
+            id: "asakusa-kaminari",
+            name: "雷門前 公衆トイレ",
+            type: "park",
+            lat: 35.7105,
+            lng: 139.7927,
+            free: true,
+            wheelchair: true,
+            notes: "観光客多い、混雑注意",
+            isPreset: true
+        },
+        {
+            id: "ueno-park",
+            name: "上野公園 噴水前トイレ",
+            type: "park",
+            lat: 35.7150,
+            lng: 139.7730,
+            free: true,
+            wheelchair: true,
+            notes: "きれいに改装済み",
+            isPreset: true
+        }
+    ];
+    
+    console.log('ページ読み込み完了');
+    
+    // アラートを一時的に無効化する関数
+    let originalAlert = window.alert;
+    let alertEnabled = true;
+    
+    function disableAlert() {
+        alertEnabled = false;
+        window.alert = function() {};
+    }
+    
+    function enableAlert() {
+        alertEnabled = true;
+        window.alert = originalAlert;
+    }
+    
+    // モーダルを閉じる関数
+    function closeToiletModal() {
+        document.getElementById('addToiletModal').style.display = 'none';
+        document.getElementById('toiletForm').reset();
+        if (window.tempMarker) {
+            window.tempMarker.setMap(null);
+            window.tempMarker = null;
+        }
+        // clickedPositionをリセット
+        if (window.toiletFinder) {
+            window.toiletFinder.clickedPosition = null;
+        }
+    }
+    
+    function closeCSVModal() {
+        document.getElementById('csvImportModal').style.display = 'none';
+        document.getElementById('csvFile').value = '';
+    }
+    
+    // CSVインポート機能
+    document.getElementById('csvFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const csv = e.target.result;
+            parseCSV(csv);
         };
-        
-        firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-        console.log('Firebase初期化完了');
-        
-        // 初期トイレデータ
-        window.INITIAL_TOILET_DATA = [
-            {
-                id: "tokyo-station-1",
-                name: "東京駅 丸の内南口 公衆トイレ",
-                type: "station",
-                lat: 35.6797,
-                lng: 139.7677,
-                free: true,
-                wheelchair: true,
-                notes: "改札外、きれいで広い",
-                isPreset: true
-            },
-            {
-                id: "shibuya-hachiko",
-                name: "渋谷駅 ハチ公口 公衆トイレ",
-                type: "station",
-                lat: 35.6590,
-                lng: 139.7005,
-                free: true,
-                wheelchair: true,
-                notes: "ハチ公像近く",
-                isPreset: true
-            },
-            {
-                id: "shinjuku-south",
-                name: "新宿駅 南口 公衆トイレ",
-                type: "station",
-                lat: 35.6896,
-                lng: 139.7006,
-                free: true,
-                wheelchair: true,
-                notes: "駅構内",
-                isPreset: true
-            },
-            {
-                id: "asakusa-kaminari",
-                name: "雷門前 公衆トイレ",
-                type: "park",
-                lat: 35.7105,
-                lng: 139.7927,
-                free: true,
-                wheelchair: true,
-                notes: "観光客多い、混雑注意",
-                isPreset: true
-            },
-            {
-                id: "ueno-park",
-                name: "上野公園 噴水前トイレ",
-                type: "park",
-                lat: 35.7150,
-                lng: 139.7730,
-                free: true,
-                wheelchair: true,
-                notes: "きれいに改装済み",
-                isPreset: true
-            }
-        ];
-        
-        // モーダルを閉じる関数
-        function closeToiletModal() {
-            document.getElementById('addToiletModal').style.display = 'none';
-            document.getElementById('toiletForm').reset();
-            if (window.tempMarker) {
-                window.tempMarker.setMap(null);
-                window.tempMarker = null;
-            }
+        reader.readAsText(file, 'UTF-8');
+    });
+    
+    function parseCSV(csv) {
+        if (csv.charCodeAt(0) === 0xFEFF) {
+            csv = csv.substr(1);
         }
         
-        function closeCSVModal() {
-            document.getElementById('csvImportModal').style.display = 'none';
-            document.getElementById('csvFile').value = '';
+        const lines = csv.split(/\r\n|\r|\n/).filter(line => line.trim() !== '');
+        
+        if (lines.length < 2) {
+            alert('CSVファイルにデータがありません');
+            return;
         }
         
-        // CSVインポート機能
-        document.getElementById('csvFile').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const csv = e.target.result;
-                parseCSV(csv);
-            };
-            reader.readAsText(file, 'UTF-8');
-        });
+        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
         
-        function parseCSV(csv) {
-            if (csv.charCodeAt(0) === 0xFEFF) {
-                csv = csv.substr(1);
-            }
-            
-            const lines = csv.split(/\r\n|\r|\n/).filter(line => line.trim() !== '');
-            
-            if (lines.length < 2) {
-                alert('CSVファイルにデータがありません');
-                return;
-            }
-            
-            const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-            
-            document.getElementById('csvImportModal').style.display = 'block';
-            
-            const preview = document.getElementById('csvPreview');
-            preview.innerHTML = `
-                <h4>インポートプレビュー</h4>
-                <p>検出された列: ${headers.join(', ')}</p>
-                <p>データ行数: ${lines.length - 1}</p>
-            `;
-            
-            document.getElementById('importBtn').style.display = 'block';
-            document.getElementById('importBtn').onclick = function() {
-                importToilets(lines, headers);
-            };
+        document.getElementById('csvImportModal').style.display = 'block';
+        
+        const preview = document.getElementById('csvPreview');
+        preview.innerHTML = `
+            <h4>インポートプレビュー</h4>
+            <p>検出された列: ${headers.join(', ')}</p>
+            <p>データ行数: ${lines.length - 1}</p>
+        `;
+        
+        document.getElementById('importBtn').style.display = 'block';
+        document.getElementById('importBtn').onclick = function() {
+            importToilets(lines, headers);
+        };
+    }
+    
+    function importToilets(lines, headers) {
+        let imported = 0;
+        let failed = 0;
+        
+        const nameIndex = headers.findIndex(h => h === '名称' || h === 'name' || h === '施設名');
+        const latIndex = headers.findIndex(h => h === '緯度' || h === 'lat' || h === 'latitude');
+        const lngIndex = headers.findIndex(h => h === '経度' || h === 'lng' || h === 'longitude' || h === 'lon');
+        
+        if (nameIndex === -1 || latIndex === -1 || lngIndex === -1) {
+            alert('必要な列（名称、緯度、経度）が見つかりません');
+            return;
         }
         
-        function importToilets(lines, headers) {
-            let imported = 0;
-            let failed = 0;
+        for (let i = 1; i < lines.length; i++) {
+            const line = lines[i].trim();
+            if (!line) continue;
             
-            const nameIndex = headers.findIndex(h => h === '名称' || h === 'name' || h === '施設名');
-            const latIndex = headers.findIndex(h => h === '緯度' || h === 'lat' || h === 'latitude');
-            const lngIndex = headers.findIndex(h => h === '経度' || h === 'lng' || h === 'longitude' || h === 'lon');
+            const values = [];
+            let current = '';
+            let inQuotes = false;
             
-            if (nameIndex === -1 || latIndex === -1 || lngIndex === -1) {
-                alert('必要な列（名称、緯度、経度）が見つかりません');
-                return;
-            }
-            
-            for (let i = 1; i < lines.length; i++) {
-                const line = lines[i].trim();
-                if (!line) continue;
-                
-                const values = [];
-                let current = '';
-                let inQuotes = false;
-                
-                for (let j = 0; j < line.length; j++) {
-                    const char = line[j];
-                    if (char === '"') {
-                        inQuotes = !inQuotes;
-                    } else if (char === ',' && !inQuotes) {
-                        values.push(current.trim());
-                        current = '';
-                    } else {
-                        current += char;
-                    }
-                }
-                values.push(current.trim());
-                
-                const name = values[nameIndex] || '';
-                const lat = parseFloat(values[latIndex] || '');
-                const lng = parseFloat(values[lngIndex] || '');
-                
-                if (!name || isNaN(lat) || isNaN(lng)) {
-                    failed++;
-                    continue;
-                }
-                
-                const toilet = {
-                    id: 'csv-' + Date.now() + '-' + i,
-                    name: name,
-                    lat: lat,
-                    lng: lng,
-                    type: 'other',
-                    free: true,
-                    wheelchair: false,
-                    isPreset: true,
-                    addedAt: new Date().toISOString()
-                };
-                
-                if (window.toiletFinder) {
-                    toiletFinder.addToilet(toilet);
-                    imported++;
+            for (let j = 0; j < line.length; j++) {
+                const char = line[j];
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    values.push(current.trim());
+                    current = '';
+                } else {
+                    current += char;
                 }
             }
+            values.push(current.trim());
             
-            alert(`${imported}件のトイレ情報をインポートしました！\n（${failed}件スキップ）`);
-            closeCSVModal();
-            updateStats();
-        }
-        
-        window.updateStats = function() {
-            if (window.toiletFinder) {
-                const total = toiletFinder.toilets.length;
-                const free = toiletFinder.toilets.filter(t => t.free).length;
-                const wheelchair = toiletFinder.toilets.filter(t => t.wheelchair).length;
-                
-                document.getElementById('totalCount').textContent = total;
-                document.getElementById('freeCount').textContent = free;
-                document.getElementById('wheelchairCount').textContent = wheelchair;
-            }
-        }
-        
-        setTimeout(() => {
-            if (window.updateStats) {
-                window.updateStats();
-            }
-        }, 1000);
-        
-        document.getElementById('searchNearbyBtn').addEventListener('click', function() {
-            if (!window.toiletFinder) {
-                alert('地図の初期化中です。少々お待ちください。');
-                return;
-            }
-            toiletFinder.searchNearbyStores();
-        });
-        
-        // トイレフォームの送信処理
-        document.getElementById('toiletForm').onsubmit = function(e) {
-            e.preventDefault();
+            const name = values[nameIndex] || '';
+            const lat = parseFloat(values[latIndex] || '');
+            const lng = parseFloat(values[lngIndex] || '');
             
-            if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
-                alert('地図上の位置を選択してください');
-                return;
+            if (!name || isNaN(lat) || isNaN(lng)) {
+                failed++;
+                continue;
             }
             
             const toilet = {
-                id: Date.now().toString(),
-                name: document.getElementById('toiletName').value,
-                lat: window.toiletFinder.clickedPosition.lat,
-                lng: window.toiletFinder.clickedPosition.lng,
-                type: document.getElementById('toiletType').value,
-                notes: document.getElementById('toiletNotes').value,
-                free: document.getElementById('toiletFree').checked,
-                wheelchair: document.getElementById('toiletWheelchair').checked,
+                id: 'csv-' + Date.now() + '-' + i,
+                name: name,
+                lat: lat,
+                lng: lng,
+                type: 'other',
+                free: true,
+                wheelchair: false,
+                isPreset: true,
                 addedAt: new Date().toISOString()
             };
             
-            window.toiletFinder.addToilet(toilet);
-            
-            // モーダルを閉じる
-            closeToiletModal();
-            
-            alert('トイレを追加しました！');
-        };
-    </script>
+            if (window.toiletFinder) {
+                // アラートを無効化してから追加
+                disableAlert();
+                toiletFinder.addToilet(toilet);
+                enableAlert();
+                imported++;
+            }
+        }
+        
+        alert(`${imported}件のトイレ情報をインポートしました！\n（${failed}件スキップ）`);
+        closeCSVModal();
+        updateStats();
+    }
     
+    window.updateStats = function() {
+        if (window.toiletFinder) {
+            const total = toiletFinder.toilets.length;
+            const free = toiletFinder.toilets.filter(t => t.free).length;
+            const wheelchair = toiletFinder.toilets.filter(t => t.wheelchair).length;
+            
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('freeCount').textContent = free;
+            document.getElementById('wheelchairCount').textContent = wheelchair;
+        }
+    }
+    
+    setTimeout(() => {
+        if (window.updateStats) {
+            window.updateStats();
+        }
+    }, 1000);
+    
+    document.getElementById('searchNearbyBtn').addEventListener('click', function() {
+        if (!window.toiletFinder) {
+            alert('地図の初期化中です。少々お待ちください。');
+            return;
+        }
+        toiletFinder.searchNearbyStores();
+    });
+    
+    // トイレフォームの送信処理
+    document.getElementById('toiletForm').onsubmit = function(e) {
+        e.preventDefault();
+        
+        if (!window.toiletFinder || !window.toiletFinder.clickedPosition) {
+            alert('地図上の位置を選択してください');
+            return;
+        }
+        
+        const toilet = {
+            id: Date.now().toString(),
+            name: document.getElementById('toiletName').value,
+            lat: window.toiletFinder.clickedPosition.lat,
+            lng: window.toiletFinder.clickedPosition.lng,
+            type: document.getElementById('toiletType').value,
+            notes: document.getElementById('toiletNotes').value,
+            free: document.getElementById('toiletFree').checked,
+            wheelchair: document.getElementById('toiletWheelchair').checked,
+            addedAt: new Date().toISOString()
+        };
+        
+        // アラートを一時的に無効化
+        disableAlert();
+        
+        // トイレを追加
+        window.toiletFinder.addToilet(toilet);
+        
+        // アラートを再度有効化
+        enableAlert();
+        
+        // モーダルを閉じる
+        closeToiletModal();
+        
+        // 成功メッセージを表示
+        alert('トイレを追加しました！');
+    };
+</script>
     <script src="app.js"></script>
     <script async defer 
         src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBRcfuL5q0oWg1t4hW6pwj8iA_XFUSSJ5E&libraries=places&callback=initMap">
